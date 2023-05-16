@@ -11,8 +11,8 @@ step_defs:
   - run: &node_version
       name: Set Node version
       command: |
-        nvm install v18
-        nvm alias default v18
+        nvm install v18.15
+        nvm alias default v18.15
         echo "nvm use default" >> $BASH_ENV
   - run: &check_version
       name: Check Node version
