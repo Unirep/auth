@@ -4,6 +4,10 @@
   "workspaces": [
     "packages/*"
   ],
-  "devDependencies": {},
-  "scripts": {}
+  "devDependencies": {
+    "prettier": "^2.8.8"
+  },
+  "scripts": {
+    "lint": "prettier ."
+  }
 }
