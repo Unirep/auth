@@ -58,4 +58,5 @@ test('should generate an add token proof', async (t) => {
   ])
   t.is(publicSignals[0], oldIdentityRoot.toString())
   t.is(publicSignals[1], newIdentityRoot.toString())
+  t.is(publicSignals[2], poseidon1([sessionToken]).toString())
 })

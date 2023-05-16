@@ -6,5 +6,6 @@ module.exports = class AddTokenProof extends BaseProof {
     this.circuit = 'addToken'
     this.oldIdentityRoot = publicSignals[0]
     this.newIdentityRoot = publicSignals[1]
+    this.tokenHash = publicSignals[2]
   }
 }

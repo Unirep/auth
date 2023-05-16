@@ -37,6 +37,8 @@ test('should generate a register proof', async (t) => {
     sessionTree.root,
     poseidon3([secret, s0, shareCount]),
   ])
-  t.is(publicSignals[1], backupTreeRoot.toString())
   t.is(publicSignals[0], identityHash.toString())
+  t.is(publicSignals[1], poseidon1([sessionToken]).toString())
+  t.is(publicSignals[2], s0.toString())
+  t.is(publicSignals[3], backupTreeRoot.toString())
 })

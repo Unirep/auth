@@ -1,12 +1,11 @@
 const { ethers } = require('hardhat')
+const { expect } = require('chai')
 const assert = require('assert')
 const randomf = require('randomf')
 const prover = require('../../provers/default')
 const RegisterProof = require('../../src/RegisterProof')
 const { poseidon2 } = require('poseidon-lite/poseidon2')
-
-// A dummy F value to test with
-const F = 2n ** 253n
+const { F } = require('../../src/math')
 
 describe('register', function () {
   {
@@ -17,6 +16,7 @@ describe('register', function () {
 
     afterEach(() => ethers.provider.send('evm_revert', [snapshot]))
   }
+
   it('should deploy auth contract', async () => {
     const { deploy } = await import('../../deploy/deploy.mjs')
     const accounts = await ethers.getSigners()
@@ -38,20 +38,26 @@ describe('register', function () {
     )
     const registerProof = new RegisterProof(publicSignals, proof, prover)
     assert.equal(await registerProof.verify(), true)
-    await contract
+    const tx = await contract
       .connect(accounts[0])
       .register(registerProof.publicSignals, registerProof.proof)
-      .then((t) => t.wait())
 
     const expectedPubkey = 1
+    await expect(tx)
+      .to.emit(contract, 'Register')
+      .withArgs(expectedPubkey, registerProof.tokenHash, registerProof.s0)
+
     const identity = await contract.identities(expectedPubkey)
     assert.equal(identity.pubkey, expectedPubkey)
-    assert.equal(identity.backupTreeRoot, registerProof.backupTreeRoot)
+    assert.equal(
+      identity.backupTreeRoot.toString(),
+      registerProof.backupTreeRoot
+    )
     const expectedIdentityRoot = poseidon2([
       expectedPubkey,
       registerProof.identityHash,
     ])
-    assert.equal(identity.identityRoot, expectedIdentityRoot)
+    assert.equal(identity.identityRoot.toString(), expectedIdentityRoot)
 
     const newIdIndex = await contract.idIndex()
     assert.equal(newIdIndex, 2)

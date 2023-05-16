@@ -16,6 +16,7 @@ template Register(SESSION_TREE_DEPTH) {
   signal backup_tree_root_square <== backup_tree_root *  backup_tree_root;
 
   signal output identity_hash;
+  signal output token_hash;
 
   // calculate the b value of y = ax + b where s0
   // when sessionToken is x=2 we can always calculate b
@@ -32,6 +33,8 @@ template Register(SESSION_TREE_DEPTH) {
 
   component token_hasher = Poseidon(1);
   token_hasher.inputs[0] <== session_token;
+
+  token_hash <== token_hasher.out;
 
   component tree_builder = BuildInitialTree(SESSION_TREE_DEPTH);
   tree_builder.in <== token_hasher.out;

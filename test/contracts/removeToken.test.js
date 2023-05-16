@@ -1,4 +1,5 @@
 const { ethers } = require('hardhat')
+const { expect } = require('chai')
 const assert = require('assert')
 const randomf = require('randomf')
 const prover = require('../../provers/default')
@@ -112,10 +113,12 @@ describe('removeToken', function () {
     )
     const removeTokenProof = new RemoveTokenProof(publicSignals, proof, prover)
     assert.equal(await removeTokenProof.verify(), true)
-    await contract
+    const tx = await contract
       .connect(accounts[0])
       .removeToken(removeTokenProof.publicSignals, removeTokenProof.proof)
-      .then((t) => t.wait())
+    await expect(tx)
+      .to.emit(contract, 'RemoveToken')
+      .withArgs(pubkey, removeTokenProof.tokenHash)
 
     const identity = await contract.identities(pubkey)
     assert.equal(identity.identityRoot, removeTokenProof.newIdentityRoot)

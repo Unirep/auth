@@ -6,5 +6,6 @@ module.exports = class RemoveTokenProof extends BaseProof {
     this.circuit = 'removeToken'
     this.oldIdentityRoot = publicSignals[0]
     this.newIdentityRoot = publicSignals[1]
+    this.tokenHash = publicSignals[2] // the removed token hash
   }
 }

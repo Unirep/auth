@@ -1,4 +1,5 @@
 const { ethers } = require('hardhat')
+const { expect } = require('chai')
 const assert = require('assert')
 const randomf = require('randomf')
 const prover = require('../../provers/default')
@@ -82,10 +83,13 @@ describe('recoverIdentity', function () {
     )
     const recoverProof = new RecoverIdentityProof(publicSignals, proof, prover)
     assert.equal(await recoverProof.verify(), true)
-    await contract
+    const tx = await contract
       .connect(accounts[0])
       .recoverIdentity(recoverProof.publicSignals, recoverProof.proof)
-      .then((t) => t.wait())
+    await expect(tx)
+      .to.emit(contract, 'RecoverIdentity')
+      .withArgs(pubkey, recoverProof.tokenHash, recoverProof.s0)
+
     const identity = await contract.identities(pubkey)
     assert.equal(identity.identityRoot, recoverProof.identityRoot)
     const nullifierUsed = await contract.backupCodeNullifiers(

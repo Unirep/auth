@@ -20,11 +20,14 @@ template RecoverIdentity(SESSION_TREE_DEPTH, BACKUP_TREE_DEPTH) {
   signal output backup_tree_root;
   signal output identity_root;
   signal output recovery_nullifier;
+  signal output token_hash;
 
   signal secret <== 2*new_s0 - new_session_token;
 
+  token_hash <== Poseidon(1)([new_session_token]);
+
   component session_tree = BuildInitialTree(SESSION_TREE_DEPTH);
-  session_tree.in <== Poseidon(1)([new_session_token]);
+  session_tree.in <== token_hash;
 
   component identity_root_hasher = IdentityRoot();
   identity_root_hasher.s0 <== new_s0;

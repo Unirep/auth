@@ -1,5 +1,6 @@
 require('hardhat/config')
 require('@nomiclabs/hardhat-ethers')
+require('@nomicfoundation/hardhat-chai-matchers')
 
 module.exports = {
   defaultNetwork: 'hardhat',

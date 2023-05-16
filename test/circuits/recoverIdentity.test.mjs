@@ -53,4 +53,7 @@ test('should generate a recover identity proof', async (t) => {
   t.is(publicSignals[0], backupTree.root.toString()) // backup tree root
   t.is(publicSignals[1], identityRoot.toString()) // new identity root
   t.is(publicSignals[2], poseidon1([backupCode]).toString()) // recovery code nullifier
+  t.is(publicSignals[3], poseidon1([sessionToken]).toString()) // new token hash
+  t.is(publicSignals[4], pubkey.toString())
+  t.is(publicSignals[5], s0.toString())
 })

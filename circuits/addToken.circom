@@ -19,6 +19,7 @@ template AddToken(SESSION_TREE_DEPTH) {
 
   signal output old_identity_root;
   signal output identity_root;
+  signal output token_hash;
 
   // first calculate the new share
   // this is session_token === (s0 - secret) * share_count + secret
@@ -46,6 +47,8 @@ template AddToken(SESSION_TREE_DEPTH) {
 
   component token_hasher = Poseidon(1);
   token_hasher.inputs[0] <== session_token;
+
+  token_hash <== token_hasher.out;
 
   // then calculate the new session tree root and identity root
   component new_tree_proof = MerkleTreeInclusionProof(SESSION_TREE_DEPTH);
