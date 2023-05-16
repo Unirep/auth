@@ -1,2 +1,4 @@
 circuits/circomlib
 zksnarkBuild
+build
+cache

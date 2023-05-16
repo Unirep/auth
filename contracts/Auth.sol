@@ -1,4 +1,8 @@
+/// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
+
+import 'poseidon-solidity/PoseidonT3.sol';
+import {IVerifier} from './interfaces/IVerifier.sol';
 
 contract Auth {
   uint idIndex = 1;
@@ -14,26 +18,47 @@ contract Auth {
   // identityRoot to pubkey
   mapping(uint => uint) identityRoots;
 
-  function register(uint[] calldata publicSignals, uint[8] calldata proof) public {
-    // require(verifyProof(publicSignals, proof))
+  IVerifier registerVerifier;
 
+  constructor(IVerifier _registerVerifier) {
+    registerVerifier = _registerVerifier;
   }
 
-  function authenticate(uint[] calldata publicSignals, uint[8] calldata proof) public {
-    // require(verifyProof(publicSignals, proof))
+  function register(
+    uint[] calldata publicSignals,
+    uint[8] calldata proof
+  ) public {
+    require(registerVerifier.verifyProof(publicSignals, proof), 'badproof');
 
+    uint pubkey = idIndex++;
+    uint identityRoot = PoseidonT3.hash([pubkey, publicSignals[0]]);
+
+    identities[pubkey].pubkey = pubkey;
+    identities[pubkey].backupTreeRoot = publicSignals[1];
+    identities[pubkey].identityRoot = identityRoot;
+  }
+
+  function authenticate(
+    uint[] calldata publicSignals,
+    uint[8] calldata proof
+  ) public {
+    // require(verifyProof(publicSignals, proof))
     // authenticate a new identity token for an identity
   }
 
-  function recover(uint[] calldata publicSignals, uint[8] calldata proof) public {
+  function recover(
+    uint[] calldata publicSignals,
+    uint[8] calldata proof
+  ) public {
     // require(verifyProof(publicSignals, proof))
-
     // reset an identity using a backup code
   }
 
-  function deactivate(uint[] calldata publicSignals, uint[8] calldata proof) public {
+  function deactivate(
+    uint[] calldata publicSignals,
+    uint[8] calldata proof
+  ) public {
     // require(verifyProof(publicSignals, proof))
-
     // deactivate a specific identity token
   }
 }
