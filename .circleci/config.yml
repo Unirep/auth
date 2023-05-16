@@ -54,6 +54,7 @@ jobs:
             - node_modules
             - build
             - zksnarkBuild
+            - contracts/verifiers
   lint:
     machine:
       image: ubuntu-2204:2022.04.1
