@@ -2,11 +2,8 @@ version: 2.1
 workflows:
   lint_and_test:
     jobs:
-      - build
       - lint
-      - contracts-test:
-          requires:
-            - build
+      - contracts-test
 
 # Just for reusing below
 step_defs:
@@ -38,30 +35,6 @@ step_defs:
         circom --version
 
 jobs:
-  build:
-    resource_class: large
-    machine:
-      image: ubuntu-2204:2022.04.1
-    steps:
-      - checkout
-      - attach_workspace:
-          at: ~/project
-      - run: *node_version
-      - run: *check_version
-      - run: *download_circom
-      - run:
-          name: Install Packages
-          command: yarn
-      - run:
-          name: Build
-          command: yarn build
-      - persist_to_workspace:
-          root: ~/project
-          paths:
-            - node_modules
-            - build
-            - zksnarkBuild
-            - contracts/verifiers
   lint:
     machine:
       image: ubuntu-2204:2022.04.1
@@ -82,10 +55,15 @@ jobs:
       image: ubuntu-2204:2022.04.1
     steps:
       - checkout
-      - attach_workspace:
-          at: ~/project
       - run: *node_version
       - run: *check_version
+      - run: *download_circom
+      - run:
+          name: Install
+          command: yarn
+      - run:
+          name: Build
+          command: yarn build
       - run:
           name: Test
           command: yarn test
