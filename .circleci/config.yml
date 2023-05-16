@@ -45,6 +45,9 @@ jobs:
       - run:
           name: Install Packages
           command: yarn
+      - run:
+          name: Build
+          command: yarn build
       - persist_to_workspace:
           root: ~/project
           paths:
