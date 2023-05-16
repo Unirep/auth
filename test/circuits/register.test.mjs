@@ -2,6 +2,7 @@ import assert from 'assert'
 import test from 'ava'
 import randomf from 'randomf'
 import prover from '../../provers/default.js'
+import { poseidon1 } from 'poseidon-lite/poseidon1.js'
 import { poseidon2 } from 'poseidon-lite/poseidon2.js'
 import { IncrementalMerkleTree } from '@zk-kit/incremental-merkle-tree'
 import CircuitConfig from '../../src/CircuitConfig.js'
@@ -31,7 +32,7 @@ test('should generate a register proof', async (t) => {
     SESSION_TREE_DEPTH,
     0n
   )
-  sessionTree.insert(sessionToken)
+  sessionTree.insert(poseidon1([sessionToken]))
 
   const identityHash = poseidon2([sessionTree.root, poseidon2([s0, secret])])
   t.is(publicSignals[1], backupTreeRoot.toString())

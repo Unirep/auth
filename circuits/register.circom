@@ -28,8 +28,11 @@ template Register(SESSION_TREE_DEPTH) {
   secret_hash.inputs[0] <== s0;
   secret_hash.inputs[1] <== secret;
 
+  component token_hasher = Poseidon(1);
+  token_hasher.inputs[0] <== session_token;
+
   component tree_builder = BuildInitialTree(SESSION_TREE_DEPTH);
-  tree_builder.in <== session_token;
+  tree_builder.in <== token_hasher.out;
 
   component out_hash = Poseidon(2);
   out_hash.inputs[0] <== tree_builder.out;
