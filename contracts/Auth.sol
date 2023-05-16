@@ -5,7 +5,7 @@ import 'poseidon-solidity/PoseidonT3.sol';
 import {IVerifier} from './interfaces/IVerifier.sol';
 
 contract Auth {
-  uint idIndex = 1;
+  uint public idIndex = 1;
 
   struct Identity {
     uint pubkey;
@@ -14,9 +14,9 @@ contract Auth {
   }
 
   // pubkey to identity
-  mapping(uint => Identity) identities;
+  mapping(uint => Identity) public identities;
   // identityRoot to pubkey
-  mapping(uint => uint) identityRoots;
+  mapping(uint => uint) public identityRoots;
 
   IVerifier registerVerifier;
 

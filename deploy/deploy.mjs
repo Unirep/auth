@@ -63,4 +63,5 @@ export const deploy = async (deployer) => {
   )
   await authContract.deployed()
   console.log(`Deployed Auth.sol to ${authContract.address}`)
+  return authContract
 }

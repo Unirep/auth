@@ -12,6 +12,7 @@ template Register(SESSION_TREE_DEPTH) {
 
   // TODO: maybe build this in ZK?
   signal input backup_tree_root;
+  signal backup_tree_root_square <== backup_tree_root *  backup_tree_root;
 
   signal output identity_hash;
 
