@@ -5,6 +5,7 @@ module.exports = {
   defaultNetwork: 'hardhat',
   paths: {
     artifacts: './build/artifacts',
+    tests: './test/contracts',
   },
   networks: {
     hardhat: {

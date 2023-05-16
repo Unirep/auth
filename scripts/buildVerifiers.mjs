@@ -4,7 +4,7 @@ import url from 'url'
 import { circuitContents } from './circuits.mjs'
 
 import hardhat from 'hardhat'
-import hardhatConfig from '../hardhat.config.js'
+import hardhatConfig from '../hardhat.config.cjs'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
