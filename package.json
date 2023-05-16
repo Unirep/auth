@@ -2,7 +2,8 @@
   "name": "root",
   "private": true,
   "devDependencies": {
-    "prettier": "^2.8.8"
+    "prettier": "^2.8.8",
+    "snarkjs": "^0.6.11"
   },
   "scripts": {
     "install": "git submodule init && git submodule update",
