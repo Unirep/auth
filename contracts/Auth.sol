@@ -19,9 +19,11 @@ contract Auth {
   mapping(uint => uint) public identityRoots;
 
   IVerifier registerVerifier;
+  IVerifier addTokenVerifier;
 
-  constructor(IVerifier _registerVerifier) {
+  constructor(IVerifier _registerVerifier, IVerifier _addTokenVerifier) {
     registerVerifier = _registerVerifier;
+    addTokenVerifier = _addTokenVerifier;
   }
 
   function register(
@@ -36,17 +38,33 @@ contract Auth {
     identities[pubkey].pubkey = pubkey;
     identities[pubkey].backupTreeRoot = publicSignals[1];
     identities[pubkey].identityRoot = identityRoot;
+
+    identityRoots[identityRoot] = pubkey;
   }
 
-  function authenticate(
+  function addToken(
     uint[] calldata publicSignals,
     uint[8] calldata proof
   ) public {
-    // require(verifyProof(publicSignals, proof))
+    require(addTokenVerifier.verifyProof(publicSignals, proof), 'badproof');
     // authenticate a new identity token for an identity
+    uint fromIdentityRoot = publicSignals[0];
+    uint toIdentityRoot = publicSignals[1];
+    uint pubkey = identityRoots[fromIdentityRoot];
+
+    require(pubkey != 0, 'badfromroot');
+    require(identityRoots[toIdentityRoot] == 0, 'badtoroot');
+
+    identityRoots[fromIdentityRoot] = 0;
+    identityRoots[toIdentityRoot] = pubkey;
+    require(
+      identities[pubkey].identityRoot == fromIdentityRoot,
+      'mismatchfrom'
+    );
+    identities[pubkey].identityRoot = toIdentityRoot;
   }
 
-  function recover(
+  function recoverIdentity(
     uint[] calldata publicSignals,
     uint[8] calldata proof
   ) public {
@@ -54,7 +72,7 @@ contract Auth {
     // reset an identity using a backup code
   }
 
-  function deactivate(
+  function removeToken(
     uint[] calldata publicSignals,
     uint[8] calldata proof
   ) public {

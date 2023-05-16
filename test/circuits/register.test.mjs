@@ -4,14 +4,12 @@ import randomf from 'randomf'
 import prover from '../../provers/default.js'
 import { poseidon1 } from 'poseidon-lite/poseidon1.js'
 import { poseidon2 } from 'poseidon-lite/poseidon2.js'
+import { poseidon3 } from 'poseidon-lite/poseidon3.js'
 import { IncrementalMerkleTree } from '@zk-kit/incremental-merkle-tree'
 import CircuitConfig from '../../src/CircuitConfig.js'
+import { F } from '../../src/math.js'
 
 const { SESSION_TREE_DEPTH } = new CircuitConfig()
-
-const F = BigInt(
-  '21888242871839275222246405745257275088548364400416034343698204186575808495617'
-)
 
 test('should generate a register proof', async (t) => {
   const secret = randomf(F)
@@ -34,7 +32,11 @@ test('should generate a register proof', async (t) => {
   )
   sessionTree.insert(poseidon1([sessionToken]))
 
-  const identityHash = poseidon2([sessionTree.root, poseidon2([s0, secret])])
+  const shareCount = 3n
+  const identityHash = poseidon2([
+    sessionTree.root,
+    poseidon3([secret, s0, shareCount]),
+  ])
   t.is(publicSignals[1], backupTreeRoot.toString())
   t.is(publicSignals[0], identityHash.toString())
 })

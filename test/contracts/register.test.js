@@ -8,7 +8,7 @@ const { poseidon2 } = require('poseidon-lite/poseidon2')
 // A dummy F value to test with
 const F = 2n ** 253n
 
-describe('Auth', function () {
+describe('register', function () {
   {
     let snapshot
     beforeEach(async () => {

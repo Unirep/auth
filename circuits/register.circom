@@ -24,9 +24,10 @@ template Register(SESSION_TREE_DEPTH) {
   // b = 2*s0 - sessionToken
   signal secret <== 2*s0 - session_token;
 
-  component secret_hash = Poseidon(2);
-  secret_hash.inputs[0] <== s0;
-  secret_hash.inputs[1] <== secret;
+  component secret_hash = Poseidon(3);
+  secret_hash.inputs[0] <== secret;
+  secret_hash.inputs[1] <== s0;
+  secret_hash.inputs[2] <== 3; // initialize the share count to 3 so future shares are calculated appropriately
 
   component token_hasher = Poseidon(1);
   token_hasher.inputs[0] <== session_token;
