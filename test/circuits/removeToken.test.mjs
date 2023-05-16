@@ -64,4 +64,5 @@ test('should generate a remove token proof', async (t) => {
   ])
   t.is(publicSignals[0], oldIdentityRoot.toString())
   t.is(publicSignals[1], newIdentityRoot.toString())
+  t.is(await prover.verifyProof('removeToken', publicSignals, proof), true)
 })

@@ -59,7 +59,11 @@ export const deploy = async (deployer) => {
   )
   const authFactory = await GlobalFactory(_authFactory)
   const authContract = await retryAsNeeded(() =>
-    authFactory.deploy(verifiers['register'], verifiers['addToken'])
+    authFactory.deploy(
+      verifiers['register'],
+      verifiers['addToken'],
+      verifiers['removeToken']
+    )
   )
   await authContract.deployed()
   console.log(`Deployed Auth.sol to ${authContract.address}`)

@@ -20,10 +20,16 @@ contract Auth {
 
   IVerifier registerVerifier;
   IVerifier addTokenVerifier;
+  IVerifier removeTokenVerifier;
 
-  constructor(IVerifier _registerVerifier, IVerifier _addTokenVerifier) {
+  constructor(
+    IVerifier _registerVerifier,
+    IVerifier _addTokenVerifier,
+    IVerifier _removeTokenVerifier
+  ) {
     registerVerifier = _registerVerifier;
     addTokenVerifier = _addTokenVerifier;
+    removeTokenVerifier = _removeTokenVerifier;
   }
 
   function register(
@@ -42,12 +48,36 @@ contract Auth {
     identityRoots[identityRoot] = pubkey;
   }
 
+  // authenticate a new identity token for an identity
   function addToken(
     uint[] calldata publicSignals,
     uint[8] calldata proof
   ) public {
     require(addTokenVerifier.verifyProof(publicSignals, proof), 'badproof');
-    // authenticate a new identity token for an identity
+
+    uint fromIdentityRoot = publicSignals[0];
+    uint toIdentityRoot = publicSignals[1];
+    uint pubkey = identityRoots[fromIdentityRoot];
+
+    require(pubkey != 0, 'badfromroot');
+    require(identityRoots[toIdentityRoot] == 0, 'badtoroot');
+
+    identityRoots[fromIdentityRoot] = 0;
+    identityRoots[toIdentityRoot] = pubkey;
+    require(
+      identities[pubkey].identityRoot == fromIdentityRoot,
+      'mismatchfrom'
+    );
+    identities[pubkey].identityRoot = toIdentityRoot;
+  }
+
+  // deactivate a specific identity token
+  function removeToken(
+    uint[] calldata publicSignals,
+    uint[8] calldata proof
+  ) public {
+    require(removeTokenVerifier.verifyProof(publicSignals, proof), 'badproof');
+
     uint fromIdentityRoot = publicSignals[0];
     uint toIdentityRoot = publicSignals[1];
     uint pubkey = identityRoots[fromIdentityRoot];
@@ -70,13 +100,5 @@ contract Auth {
   ) public {
     // require(verifyProof(publicSignals, proof))
     // reset an identity using a backup code
-  }
-
-  function removeToken(
-    uint[] calldata publicSignals,
-    uint[8] calldata proof
-  ) public {
-    // require(verifyProof(publicSignals, proof))
-    // deactivate a specific identity token
   }
 }
