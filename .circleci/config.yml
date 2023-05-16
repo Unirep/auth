@@ -4,6 +4,7 @@ workflows:
     jobs:
       - lint
       - contracts-test
+      - circuits-test
 
 # Just for reusing below
 step_defs:
@@ -66,4 +67,22 @@ jobs:
           command: yarn build
       - run:
           name: Test
-          command: yarn test
+          command: yarn test:contracts
+  circuits-test:
+    resource_class: large
+    machine:
+      image: ubuntu-2204:2022.04.1
+    steps:
+      - checkout
+      - run: *node_version
+      - run: *check_version
+      - run: *download_circom
+      - run:
+          name: Install
+          command: yarn
+      - run:
+          name: Build
+          command: yarn build:circuits
+      - run:
+          name: Test
+          command: yarn test:circuits
