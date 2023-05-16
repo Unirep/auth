@@ -1,4 +1,6 @@
-const SESSION_TREE_DEPTH = 5
+import CircuitConfig from '../src/CircuitConfig.js'
+
+const { SESSION_TREE_DEPTH } = new CircuitConfig()
 
 export const ptauName = 'powersOfTau28_hez_final_18.ptau'
 
