@@ -2121,6 +2121,11 @@ picomatch@^2.0.4, picomatch@^2.2.1:
   resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-2.3.1.tgz#3ba3833733646d9d3e4995946c1365a67fb07a42"
   integrity sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==
 
+poseidon-lite@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/poseidon-lite/-/poseidon-lite-0.2.0.tgz#dbc242ebd9c10c32d507a533fa497231d168fd72"
+  integrity sha512-vivDZnGmz8W4G/GzVA72PXkfYStjilu83rjjUfpL4PueKcC8nfX6hCPh2XhoC5FBgC6y0TA3YuUeUo5YCcNoig==
+
 poseidon-solidity@^0.0.5:
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/poseidon-solidity/-/poseidon-solidity-0.0.5.tgz#3f93e01cfe25f6d2f2fac49734fbb00961b84655"
@@ -2168,6 +2173,11 @@ randombytes@^2.1.0:
   integrity sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==
   dependencies:
     safe-buffer "^5.1.0"
+
+randomf@^0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/randomf/-/randomf-0.0.3.tgz#c4db23042e8d4d9dd77b70e04ad3858e78026718"
+  integrity sha512-hcZAFZNPZ3YeNpYLkC3MYjVedW4Hb4I0OhQdEHRd/UdDM8roGRH1vCtt8/UTaIHy4VKPLh6kfzS9ljzlMD2Y2Q==
 
 raw-body@^2.4.1:
   version "2.5.2"
