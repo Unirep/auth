@@ -18,18 +18,24 @@ contract Auth {
   // identityRoot to pubkey
   mapping(uint => uint) public identityRoots;
 
+  // used backup code nullifiers
+  mapping(uint => bool) public backupCodeNullifiers;
+
   IVerifier registerVerifier;
   IVerifier addTokenVerifier;
   IVerifier removeTokenVerifier;
+  IVerifier recoverIdentityVerifier;
 
   constructor(
     IVerifier _registerVerifier,
     IVerifier _addTokenVerifier,
-    IVerifier _removeTokenVerifier
+    IVerifier _removeTokenVerifier,
+    IVerifier _recoverIdentityVerifier
   ) {
     registerVerifier = _registerVerifier;
     addTokenVerifier = _addTokenVerifier;
     removeTokenVerifier = _removeTokenVerifier;
+    recoverIdentityVerifier = _recoverIdentityVerifier;
   }
 
   function register(
@@ -94,11 +100,31 @@ contract Auth {
     identities[pubkey].identityRoot = toIdentityRoot;
   }
 
+  // reset an identity using a backup code
   function recoverIdentity(
     uint[] calldata publicSignals,
     uint[8] calldata proof
   ) public {
-    // require(verifyProof(publicSignals, proof))
-    // reset an identity using a backup code
+    require(
+      recoverIdentityVerifier.verifyProof(publicSignals, proof),
+      'badproof'
+    );
+
+    uint backupTreeRoot = publicSignals[0];
+    uint identityRoot = publicSignals[1];
+    uint nullifier = publicSignals[2];
+    uint pubkey = publicSignals[3];
+
+    require(backupCodeNullifiers[nullifier] == false, 'backupcodeused');
+    backupCodeNullifiers[nullifier] = true;
+
+    require(
+      identities[pubkey].backupTreeRoot == backupTreeRoot,
+      'badbackuproot'
+    );
+
+    identityRoots[identities[pubkey].identityRoot] = 0;
+    identityRoots[identityRoot] = pubkey;
+    identities[pubkey].identityRoot = identityRoot;
   }
 }

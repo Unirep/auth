@@ -62,7 +62,8 @@ export const deploy = async (deployer) => {
     authFactory.deploy(
       verifiers['register'],
       verifiers['addToken'],
-      verifiers['removeToken']
+      verifiers['removeToken'],
+      verifiers['recoverIdentity']
     )
   )
   await authContract.deployed()
