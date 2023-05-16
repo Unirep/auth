@@ -19,6 +19,12 @@ step_defs:
   - run: &check_version
       name: Check Node version
       command: node -v | grep v18
+  - run: &download_circom
+      name: Download Circom
+      command: |
+        sudo wget -O /usr/bin/circom https://pub-a23dfe1546714ecb83801a3fc67522ab.r2.dev/circom
+        sudo chmod +x /usr/bin/circom
+        circom --version
   - run: &install_circom
       name: Install Circom
       command: |
@@ -29,6 +35,7 @@ step_defs:
         cd circom
         cargo build --release
         cargo install --path circom
+        circom --version
 
 jobs:
   build:
@@ -41,7 +48,7 @@ jobs:
           at: ~/project
       - run: *node_version
       - run: *check_version
-      - run: *install_circom
+      - run: *download_circom
       - run:
           name: Install Packages
           command: yarn
