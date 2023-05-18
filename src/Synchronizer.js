@@ -377,13 +377,13 @@ module.exports = class Synchronizer extends EventEmitter {
   }
 
   async handleRemoveToken({ event, db, decodedData }) {
-    const { pubkey, s0, tokenHash } = decodedData
+    const { pubkey, tokenHash } = decodedData
     db.update('Token', {
       where: {
         pubkey: toDecString(pubkey),
         hash: toDecString(tokenHash),
       },
-      change: {
+      update: {
         hash: '0',
       },
     })

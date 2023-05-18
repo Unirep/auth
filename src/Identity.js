@@ -4,6 +4,7 @@ const { F, modinv, safemod } = require('./math')
 const randomf = require('randomf')
 const RegisterProof = require('./RegisterProof')
 const AddTokenProof = require('./AddTokenProof')
+const RemoveTokenProof = require('./RemoveTokenProof')
 const Synchronizer = require('./Synchronizer')
 const { IncrementalMerkleTree } = require('@zk-kit/incremental-merkle-tree')
 
@@ -125,5 +126,45 @@ module.exports = class Identity {
       this.token = newToken
     }
     return new AddTokenProof(publicSignals, proof, this.prover)
+  }
+
+  async removeTokenProof(config = {}) {
+    const { tokenHash } = config
+    if (!tokenHash) {
+      throw new Error('No tokenHash supplied')
+    }
+    const secret = await this.loadSecret()
+    const identity = await this.sync._db.findOne('Identity', {
+      where: {
+        pubkey: this.pubkey.toString(),
+      },
+    })
+    const s0 = BigInt(identity.s0)
+    const shareCount = BigInt(identity.shareCount)
+    const sessionTree = await this.sync.buildSessionTree()
+    const leaf = poseidon1([this.token])
+    const leafIndex = sessionTree.leaves.findIndex((v) => BigInt(v) === leaf)
+    const authMerkleProof = sessionTree.createProof(leafIndex)
+    const removeLeafIndex = sessionTree.leaves.findIndex(
+      (v) => BigInt(v) === BigInt(tokenHash)
+    )
+    const removeMerkleProof = sessionTree.createProof(removeLeafIndex)
+    const { publicSignals, proof } = await this.prover.genProofAndPublicSignals(
+      'removeToken',
+      {
+        s0,
+        secret,
+        share_count: shareCount,
+        session_token: this.token,
+        pubkey: this.pubkey,
+        session_tree_indices: authMerkleProof.pathIndices,
+        session_tree_siblings: authMerkleProof.siblings,
+        old_session_tree_root: sessionTree.root,
+        session_tree_change_indices: removeMerkleProof.pathIndices,
+        session_tree_change_siblings: removeMerkleProof.siblings,
+        session_leaf: tokenHash,
+      }
+    )
+    return new RemoveTokenProof(publicSignals, proof, this.prover)
   }
 }

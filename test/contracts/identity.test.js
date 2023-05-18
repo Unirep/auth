@@ -4,7 +4,7 @@ const assert = require('assert')
 const randomf = require('randomf')
 const prover = require('../../provers/default')
 const RegisterProof = require('../../src/RegisterProof')
-const { poseidon2 } = require('poseidon-lite/poseidon2')
+const { poseidon1, poseidon2 } = require('poseidon-lite')
 const { F } = require('../../src/math')
 const Identity = require('../../src/Identity')
 
@@ -119,7 +119,7 @@ describe('Identity', function () {
     id.sync.stop()
   })
 
-  it('should register and add many tokens', async () => {
+  it('should register and add/remove tokens', async () => {
     const { deploy } = await import('../../deploy/deploy.mjs')
     const accounts = await ethers.getSigners()
     const contract = await deploy(accounts[0])
@@ -141,13 +141,66 @@ describe('Identity', function () {
     }
 
     await id.sync.waitForSync()
+
+    // add a bunch of tokens
+    const tokenHashes = []
     for (let x = 0; x < 4; x++) {
-      const { publicSignals, proof } = await id.addTokenProof()
+      const addProof = await id.addTokenProof()
+      tokenHashes.push(addProof.tokenHash)
+      const { publicSignals, proof } = addProof
       await contract
         .connect(accounts[0])
         .addToken(publicSignals, proof)
         .then((t) => t.wait())
       await id.sync.waitForSync()
     }
+
+    // then remove them
+    for (let x = 3; x >= 0; x--) {
+      const { publicSignals, proof } = await id.removeTokenProof({
+        tokenHash: tokenHashes[x],
+      })
+      await contract
+        .connect(accounts[0])
+        .removeToken(publicSignals, proof)
+        .then((t) => t.wait())
+      await id.sync.waitForSync()
+    }
+
+    // now create a new identity
+    const id2 = new Identity({
+      prover,
+      address: contract.address,
+      provider: ethers.provider,
+      pubkey: id.pubkey,
+    })
+    await id2.sync.start()
+    await id2.sync.waitForSync()
+
+    // and add a new token
+    {
+      const secret = await id.loadSecret()
+      const addProof = await id2.addTokenProof({ secret })
+      await contract
+        .connect(accounts[0])
+        .addToken(addProof.publicSignals, addProof.proof)
+        .then((t) => t.wait())
+      await id2.sync.waitForSync()
+    }
+
+    // and remove the original token
+    {
+      const { publicSignals, proof } = await id2.removeTokenProof({
+        tokenHash: poseidon1([id.token]),
+      })
+      await contract
+        .connect(accounts[0])
+        .removeToken(publicSignals, proof)
+        .then((t) => t.wait())
+    }
+    await id2.sync.waitForSync()
+    await id.sync.waitForSync()
+    id2.sync.stop()
+    id.sync.stop()
   })
 })
