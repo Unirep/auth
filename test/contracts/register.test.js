@@ -42,7 +42,7 @@ describe('register', function () {
       .connect(accounts[0])
       .register(registerProof.publicSignals, registerProof.proof)
 
-    const expectedPubkey = 1
+    const expectedPubkey = registerProof.pubkey
     await expect(tx)
       .to.emit(contract, 'Register')
       .withArgs(expectedPubkey, registerProof.tokenHash, registerProof.s0)
@@ -58,8 +58,5 @@ describe('register', function () {
       registerProof.identityHash,
     ])
     assert.equal(identity.identityRoot.toString(), expectedIdentityRoot)
-
-    const newIdIndex = await contract.idIndex()
-    assert.equal(newIdIndex, 2)
   })
 })

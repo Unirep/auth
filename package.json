@@ -5,12 +5,14 @@
     "install": "git submodule init && git submodule update",
     "lint": "prettier .",
     "build:circuits": "node scripts/buildParallel.mjs",
-    "build:contracts": "hardhat compile && node scripts/buildVerifiers.mjs",
+    "build:contracts": "hardhat compile && node scripts/buildVerifiers.mjs && node scripts/abi.mjs",
     "build": "yarn build:circuits && yarn build:contracts",
     "test:contracts": "hardhat test",
     "test:circuits": "ava --no-worker-threads ./test/circuits/*.test.mjs"
   },
   "dependencies": {
+    "anondb": "^0.0.17",
+    "nanoid": "3",
     "poseidon-solidity": "^0.0.5"
   },
   "devDependencies": {

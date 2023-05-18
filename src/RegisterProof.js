@@ -9,4 +9,8 @@ module.exports = class RegisterProof extends BaseProof {
     this.s0 = publicSignals[2]
     this.backupTreeRoot = publicSignals[3]
   }
+
+  get pubkey() {
+    return BigInt(this.tokenHash) + 1n
+  }
 }

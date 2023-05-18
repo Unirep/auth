@@ -35,6 +35,7 @@ describe('removeToken', function () {
     const secret = safemod(2n * s0 - sessionToken)
 
     // first register an identity
+    let pubkey
     {
       const { publicSignals, proof } = await prover.genProofAndPublicSignals(
         'register',
@@ -45,13 +46,13 @@ describe('removeToken', function () {
         }
       )
       const registerProof = new RegisterProof(publicSignals, proof, prover)
+      pubkey = registerProof.pubkey
       assert.equal(await registerProof.verify(), true)
       await contract
         .connect(accounts[0])
         .register(registerProof.publicSignals, registerProof.proof)
         .then((t) => t.wait())
     }
-    const pubkey = 1
 
     // then add a token
     let shareCount = 3n

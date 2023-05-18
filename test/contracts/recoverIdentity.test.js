@@ -41,6 +41,7 @@ describe('recoverIdentity', function () {
     }
 
     // first register an identity
+    let pubkey
     {
       const s0 = randomf(F)
       const sessionToken = randomf(F)
@@ -54,13 +55,13 @@ describe('recoverIdentity', function () {
         }
       )
       const registerProof = new RegisterProof(publicSignals, proof, prover)
+      pubkey = registerProof.pubkey
       assert.equal(await registerProof.verify(), true)
       await contract
         .connect(accounts[0])
         .register(registerProof.publicSignals, registerProof.proof)
         .then((t) => t.wait())
     }
-    const pubkey = 1
     // now recover the identity with a new s0/token
     const s0 = randomf(F)
     const sessionToken = randomf(F)

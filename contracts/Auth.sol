@@ -5,7 +5,8 @@ import 'poseidon-solidity/PoseidonT3.sol';
 import {IVerifier} from './interfaces/IVerifier.sol';
 
 contract Auth {
-  uint public idIndex = 1;
+  uint constant F =
+    21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
   struct Identity {
     uint pubkey;
@@ -26,12 +27,20 @@ contract Auth {
   event RemoveToken(uint indexed pubkey, uint tokenHash);
   event RecoverIdentity(uint indexed pubkey, uint tokenHash, uint s0);
 
+  struct Config {
+    uint8 sessionTreeDepth;
+    uint8 backupTreeDepth;
+  }
+
+  Config public config;
+
   IVerifier registerVerifier;
   IVerifier addTokenVerifier;
   IVerifier removeTokenVerifier;
   IVerifier recoverIdentityVerifier;
 
   constructor(
+    Config memory _config,
     IVerifier _registerVerifier,
     IVerifier _addTokenVerifier,
     IVerifier _removeTokenVerifier,
@@ -41,6 +50,9 @@ contract Auth {
     addTokenVerifier = _addTokenVerifier;
     removeTokenVerifier = _removeTokenVerifier;
     recoverIdentityVerifier = _recoverIdentityVerifier;
+    config = _config;
+
+    emit Register(0, 0, 0);
   }
 
   function register(
@@ -49,17 +61,19 @@ contract Auth {
   ) public {
     require(registerVerifier.verifyProof(publicSignals, proof), 'badproof');
 
-    uint pubkey = idIndex++;
-    uint identityRoot = PoseidonT3.hash([pubkey, publicSignals[0]]);
+    uint identityHash = publicSignals[0];
+    uint tokenHash = publicSignals[1];
+    uint pubkey = addmod(tokenHash, 1, F);
+    uint identityRoot = PoseidonT3.hash([pubkey, identityHash]);
     uint backupTreeRoot = publicSignals[3];
 
+    require(identities[pubkey].identityRoot == 0, 'doublereg');
     identities[pubkey].pubkey = pubkey;
     identities[pubkey].backupTreeRoot = backupTreeRoot;
     identities[pubkey].identityRoot = identityRoot;
 
     identityRoots[identityRoot] = pubkey;
 
-    uint tokenHash = publicSignals[1];
     uint s0 = publicSignals[2];
     emit Register(pubkey, tokenHash, s0);
   }

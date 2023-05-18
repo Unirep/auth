@@ -4,12 +4,15 @@ import Poseidon from 'poseidon-solidity'
 const { PoseidonT3 } = Poseidon
 import GlobalFactory from 'global-factory'
 import { linkLibrary, tryPath, retryAsNeeded } from './utils.mjs'
+import CircuitConfig from '../src/CircuitConfig.js'
 
 function createVerifierName(circuit) {
   return `${circuit.charAt(0).toUpperCase() + circuit.slice(1)}Verifier`
 }
 
-export const deploy = async (deployer) => {
+export const deploy = async (deployer, config) => {
+  const { SESSION_TREE_DEPTH, BACKUP_TREE_DEPTH } = new CircuitConfig(config)
+
   if ((await deployer.provider.getCode(PoseidonT3.proxyAddress)) === '0x') {
     await retryAsNeeded(() =>
       deployer.sendTransaction({
@@ -60,6 +63,10 @@ export const deploy = async (deployer) => {
   const authFactory = await GlobalFactory(_authFactory)
   const authContract = await retryAsNeeded(() =>
     authFactory.deploy(
+      {
+        sessionTreeDepth: SESSION_TREE_DEPTH,
+        backupTreeDepth: BACKUP_TREE_DEPTH,
+      },
       verifiers['register'],
       verifiers['addToken'],
       verifiers['removeToken'],
