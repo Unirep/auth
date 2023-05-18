@@ -75,6 +75,50 @@ describe('Identity', function () {
     assert.equal(sessionTree.leaves.length, 2)
   })
 
+  it('should initialize with no token', async () => {
+    const { deploy } = await import('../../deploy/deploy.mjs')
+    const accounts = await ethers.getSigners()
+    const contract = await deploy(accounts[0])
+
+    let pubkey
+    let secret
+
+    {
+      const id = new Identity({
+        prover,
+        address: contract.address,
+        provider: ethers.provider,
+      })
+      await id.sync.start()
+      pubkey = id.pubkey
+      const registerProof = await id.registerProof()
+      const { publicSignals, proof } = registerProof
+      await contract
+        .connect(accounts[0])
+        .register(publicSignals, proof)
+        .then((t) => t.wait())
+      await id.sync.waitForSync()
+      secret = await id.loadSecret()
+      id.sync.stop()
+    }
+    const id = new Identity({
+      prover,
+      address: contract.address,
+      provider: ethers.provider,
+      pubkey,
+    })
+    await id.sync.start()
+    await id.sync.waitForSync()
+    const { publicSignals, proof } = await id.addTokenProof({ secret })
+    await contract
+      .connect(accounts[0])
+      .addToken(publicSignals, proof)
+      .then((t) => t.wait())
+    await id.sync.waitForSync()
+    assert.equal(secret, await id.loadSecret())
+    id.sync.stop()
+  })
+
   it('should register and add many tokens', async () => {
     const { deploy } = await import('../../deploy/deploy.mjs')
     const accounts = await ethers.getSigners()

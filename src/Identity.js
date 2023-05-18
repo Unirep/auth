@@ -17,38 +17,48 @@ module.exports = class Identity {
       throw new Error('Must supply a prover')
     }
     this.prover = prover
-    if (token && !pubkey) {
-      throw new Error('Must supply pubkey with token')
-    }
-    if (token) {
+    if (token && pubkey) {
       // token and pubkey
       this.pubkey = BigInt(pubkey)
       this.token = BigInt(token)
-    } else if (!pubkey) {
-      // no pubkey, precal proof values
+    } else if (!token && !pubkey) {
+      // no pubkey or token, precal proof values
       this.token = randomf(F)
       this.pubkey = poseidon1([this.token]) + 1n
+    } else if (pubkey) {
+      this.pubkey = BigInt(pubkey)
+    } else {
+      throw new Error('Must supply pubkey with token')
     }
 
     this.sync = new Synchronizer({
       ...config,
-      token: this.token,
+      token: this.token ?? null,
       pubkey: this.pubkey,
     })
   }
 
   async loadSecret() {
+    if (!this.token) {
+      throw new Error('No token set for identity')
+    }
     const token = await this.sync._db.findOne('Token', {
       where: {
         pubkey: this.pubkey.toString(),
         hash: poseidon1([this.token]).toString(),
       },
     })
+    if (!token) {
+      throw new Error('Unable to find token in db')
+    }
     const identity = await this.sync._db.findOne('Identity', {
       where: {
         pubkey: this.pubkey.toString(),
       },
     })
+    if (!identity) {
+      throw new Error('Unable to find identity in db')
+    }
     const n = BigInt(token.index)
     const s0 = BigInt(identity.s0)
     const secret = safemod((n * s0 - this.token) * modinv(n - 1n))
@@ -82,17 +92,15 @@ module.exports = class Identity {
   }
 
   async addTokenProof(config) {
-    const secret = config?.secret ?? (await this.loadSecret())
-    const token = await this.sync._db.findOne('Token', {
-      where: {
-        hash: poseidon1([this.token]).toString(),
-      },
-    })
+    const secret = BigInt(config?.secret ?? (await this.loadSecret()))
     const identity = await this.sync._db.findOne('Identity', {
       where: {
         pubkey: this.pubkey.toString(),
       },
     })
+    if (!identity) {
+      throw new Error('Unable to find identity, are you synced?')
+    }
     const s0 = BigInt(identity.s0)
     const shareCount = BigInt(identity.shareCount)
     const newToken = safemod(secret + (s0 - secret) * shareCount)
@@ -112,6 +120,10 @@ module.exports = class Identity {
         old_session_tree_root: sessionTree.root,
       }
     )
+    if (!this.token) {
+      // TODO: refactor this, external applications might want more control
+      this.token = newToken
+    }
     return new AddTokenProof(publicSignals, proof, this.prover)
   }
 }

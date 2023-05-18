@@ -17,9 +17,7 @@ function toDecString(content) {
 module.exports = class Synchronizer extends EventEmitter {
   constructor(config) {
     super()
-    const { db, address, provider, token, pubkey } = config
-
-    this.token = token
+    const { db, address, provider, pubkey } = config
 
     this._db = db ?? new MemoryConnector(constructSchema(schema))
     this.contract = new ethers.Contract(address, ABI, provider)
