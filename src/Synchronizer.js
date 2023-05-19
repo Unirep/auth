@@ -351,7 +351,6 @@ module.exports = class Synchronizer extends EventEmitter {
     db.create('Identity', {
       s0: toDecString(s0),
       pubkey: toDecString(pubkey),
-      shareCount: 3,
     })
   }
 
@@ -364,15 +363,6 @@ module.exports = class Synchronizer extends EventEmitter {
       pubkey: toDecString(pubkey),
       hash: toDecString(tokenHash),
       index: count + 2, // initial token is at index 2
-    })
-    db.update('Identity', {
-      where: {
-        pubkey: toDecString(pubkey),
-      },
-      update: {
-        // count is index + 1
-        shareCount: count + 3,
-      },
     })
   }
 

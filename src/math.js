@@ -35,7 +35,12 @@ const modinv = (d, _F = F) => {
   return safemod(x, _F)
 }
 
+const calcsecret = (s0, token, tokenX, _F = F) => {
+  return safemod(safemod(tokenX * s0 - token, _F) * modinv(tokenX - 1n, _F), _F)
+}
+
 module.exports = {
+  calcsecret,
   safemod,
   modinv,
   F,

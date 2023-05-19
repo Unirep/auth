@@ -6,15 +6,13 @@ template IdentityRoot() {
   signal input session_tree_root;
   signal input secret;
   signal input s0;
-  signal input share_count;
   signal input pubkey;
 
   signal output out;
 
-  component secret_hasher = Poseidon(3);
+  component secret_hasher = Poseidon(2);
   secret_hasher.inputs[0] <== secret;
   secret_hasher.inputs[1] <== s0;
-  secret_hasher.inputs[2] <== share_count;
 
   component root_hasher = Poseidon(2);
   root_hasher.inputs[0] <== session_tree_root;

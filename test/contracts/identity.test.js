@@ -191,7 +191,7 @@ describe('Identity', function () {
     // and remove the original token
     {
       const { publicSignals, proof } = await id2.removeTokenProof({
-        tokenHash: poseidon1([id.token]),
+        tokenHash: poseidon1([id.token.y]),
       })
       await contract
         .connect(accounts[0])

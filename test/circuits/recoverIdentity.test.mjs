@@ -2,10 +2,10 @@ import assert from 'assert'
 import test from 'ava'
 import randomf from 'randomf'
 import prover from '../../provers/default.js'
-import { poseidon1, poseidon2, poseidon3 } from 'poseidon-lite'
+import { poseidon1, poseidon2 } from 'poseidon-lite'
 import { IncrementalMerkleTree } from '@zk-kit/incremental-merkle-tree'
 import CircuitConfig from '../../src/CircuitConfig.js'
-import { F } from '../../src/math.js'
+import { F, safemod, modinv, calcsecret } from '../../src/math.js'
 
 const { SESSION_TREE_DEPTH, BACKUP_TREE_DEPTH } = new CircuitConfig()
 
@@ -18,11 +18,11 @@ test('should generate a recover identity proof', async (t) => {
     backupTree.insert(code)
   }
   const pubkey = randomf(F)
-  const secret = randomf(F)
-  const a = randomf(F)
-  const s0 = (1n * a + secret) % F
-  const shareCount = 3n // the initial value
-  const sessionToken = (2n * a + secret) % F
+  const s0 = randomf(F)
+  const sessionToken = randomf(F)
+  const sessionTokenX = randomf(F)
+
+  const secret = calcsecret(s0, sessionToken, sessionTokenX)
 
   const backupCodeIndex = 8
   const backupTreeProof = backupTree.createProof(backupCodeIndex)
@@ -32,6 +32,7 @@ test('should generate a recover identity proof', async (t) => {
     {
       new_s0: s0,
       new_session_token: sessionToken,
+      new_session_token_x: sessionTokenX,
       backup_tree_indices: backupTreeProof.pathIndices,
       backup_tree_siblings: backupTreeProof.siblings,
       backup_code: backupCode,
@@ -48,7 +49,7 @@ test('should generate a recover identity proof', async (t) => {
 
   const identityRoot = poseidon2([
     pubkey,
-    poseidon2([sessionTree.root, poseidon3([secret, s0, shareCount])]),
+    poseidon2([sessionTree.root, poseidon2([secret, s0])]),
   ])
   t.is(publicSignals[0], backupTree.root.toString()) // backup tree root
   t.is(publicSignals[1], identityRoot.toString()) // new identity root

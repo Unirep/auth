@@ -33,6 +33,7 @@ describe('register', function () {
       {
         s0: randomf(F),
         session_token: randomf(F),
+        session_token_x: randomf(F),
         backup_tree_root: randomf(F),
       }
     )

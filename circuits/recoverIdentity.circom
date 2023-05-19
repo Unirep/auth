@@ -4,6 +4,7 @@ include "./circomlib/circuits/poseidon.circom";
 include "./identityRoot.circom";
 include "./buildInitialTree.circom";
 include "./incrementalMerkleTree.circom";
+include "./secret.circom";
 
 template RecoverIdentity(SESSION_TREE_DEPTH, BACKUP_TREE_DEPTH) {
   signal input backup_code;
@@ -16,13 +17,19 @@ template RecoverIdentity(SESSION_TREE_DEPTH, BACKUP_TREE_DEPTH) {
 
   signal input new_s0;
   signal input new_session_token;
+  signal input new_session_token_x;
 
   signal output backup_tree_root;
   signal output identity_root;
   signal output recovery_nullifier;
   signal output token_hash;
 
-  signal secret <== 2*new_s0 - new_session_token;
+  component secret_calc = Secret();
+  secret_calc.s0 <== new_s0;
+  secret_calc.x <== new_session_token_x;
+  secret_calc.y <== new_session_token;
+
+  signal secret <== secret_calc.out;
 
   token_hash <== Poseidon(1)([new_session_token]);
 
@@ -33,7 +40,6 @@ template RecoverIdentity(SESSION_TREE_DEPTH, BACKUP_TREE_DEPTH) {
   identity_root_hasher.s0 <== new_s0;
   identity_root_hasher.secret <== secret;
   identity_root_hasher.session_tree_root <== session_tree.out;
-  identity_root_hasher.share_count <== 3;
   identity_root_hasher.pubkey <== pubkey;
 
   identity_root <== identity_root_hasher.out;

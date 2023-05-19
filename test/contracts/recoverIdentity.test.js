@@ -7,7 +7,7 @@ const RegisterProof = require('../../src/RegisterProof')
 const AddTokenProof = require('../../src/AddTokenProof')
 const RecoverIdentityProof = require('../../src/RecoverIdentityProof')
 const { poseidon1, poseidon2 } = require('poseidon-lite')
-const { safemod, F } = require('../../src/math')
+const { calcsecret, safemod, F } = require('../../src/math')
 const { IncrementalMerkleTree } = require('@zk-kit/incremental-merkle-tree')
 const CircuitConfig = require('../../src/CircuitConfig')
 
@@ -45,12 +45,14 @@ describe('recoverIdentity', function () {
     {
       const s0 = randomf(F)
       const sessionToken = randomf(F)
-      const secret = safemod(2n * s0 - sessionToken)
+      const sessionTokenX = randomf(F)
+      const secret = calcsecret(s0, sessionToken, sessionTokenX)
       const { publicSignals, proof } = await prover.genProofAndPublicSignals(
         'register',
         {
           s0,
           session_token: sessionToken,
+          session_token_x: sessionTokenX,
           backup_tree_root: backupTree.root,
         }
       )
@@ -65,7 +67,8 @@ describe('recoverIdentity', function () {
     // now recover the identity with a new s0/token
     const s0 = randomf(F)
     const sessionToken = randomf(F)
-    const secret = safemod(2n * s0 - sessionToken)
+    const sessionTokenX = randomf(F)
+    const secret = calcsecret(s0, sessionToken, sessionTokenX)
 
     const backupCodeIndex = 4
     const backupCode = backupCodes[backupCodeIndex]
@@ -76,6 +79,7 @@ describe('recoverIdentity', function () {
       {
         new_s0: s0,
         new_session_token: sessionToken,
+        new_session_token_x: sessionTokenX,
         backup_tree_indices: backupTreeProof.pathIndices,
         backup_tree_siblings: backupTreeProof.siblings,
         backup_code: backupCode,

@@ -3,14 +3,13 @@ pragma circom 2.0.0;
 include "./circomlib/circuits/poseidon.circom";
 include "./identityRoot.circom";
 include "./incrementalMerkleTree.circom";
+include "./secret.circom";
 
 template RemoveToken(SESSION_TREE_DEPTH) {
   signal input s0;
-  signal input secret;
-
-  signal input share_count;
 
   signal input session_token;
+  signal input session_token_x;
   signal input pubkey;
 
   // for proving session_token membership
@@ -26,6 +25,13 @@ template RemoveToken(SESSION_TREE_DEPTH) {
 
   signal output old_identity_root;
   signal output identity_root;
+
+  component secret_calc = Secret();
+  secret_calc.s0 <== s0;
+  secret_calc.y <== session_token;
+  secret_calc.x <== session_token_x;
+
+  signal secret <== secret_calc.out;
 
   // prove that session_token exists in the tree
   component auth_proof = MerkleTreeInclusionProof(SESSION_TREE_DEPTH);
@@ -49,7 +55,6 @@ template RemoveToken(SESSION_TREE_DEPTH) {
   old_root.session_tree_root <== old_session_tree_root;
   old_root.secret <== secret;
   old_root.s0 <== s0;
-  old_root.share_count <== share_count;
   old_root.pubkey <== pubkey;
 
   old_identity_root <== old_root.out;
@@ -66,7 +71,6 @@ template RemoveToken(SESSION_TREE_DEPTH) {
   new_root.session_tree_root <== new_tree_proof.root;
   new_root.secret <== secret;
   new_root.s0 <== s0;
-  new_root.share_count <== share_count;
   new_root.pubkey <== pubkey;
 
   identity_root <== new_root.out;

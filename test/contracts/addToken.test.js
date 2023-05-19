@@ -6,7 +6,7 @@ const prover = require('../../provers/default')
 const RegisterProof = require('../../src/RegisterProof')
 const AddTokenProof = require('../../src/AddTokenProof')
 const { poseidon1, poseidon2 } = require('poseidon-lite')
-const { safemod, F } = require('../../src/math')
+const { calcsecret, safemod, F } = require('../../src/math')
 const { IncrementalMerkleTree } = require('@zk-kit/incremental-merkle-tree')
 const CircuitConfig = require('../../src/CircuitConfig')
 
@@ -29,7 +29,8 @@ describe('addToken', function () {
 
     const s0 = randomf(F)
     const sessionToken = randomf(F)
-    const secret = safemod(2n * s0 - sessionToken)
+    const sessionTokenX = randomf(F)
+    const secret = calcsecret(s0, sessionToken, sessionTokenX)
 
     // first register an identity
     let pubkey
@@ -39,6 +40,7 @@ describe('addToken', function () {
         {
           s0,
           session_token: sessionToken,
+          session_token_x: sessionTokenX,
           backup_tree_root: randomf(F),
         }
       )
@@ -51,8 +53,9 @@ describe('addToken', function () {
         .then((t) => t.wait())
     }
 
-    const shareCount = 3n
-    const newToken = safemod(secret + (s0 - secret) * shareCount)
+    const a = safemod(s0 - secret)
+    const newTokenX = randomf(F)
+    const newToken = safemod(a * newTokenX + secret)
 
     const sessionTree = new IncrementalMerkleTree(
       poseidon2,
@@ -67,9 +70,8 @@ describe('addToken', function () {
       'addToken',
       {
         s0,
-        secret,
-        share_count: shareCount,
         session_token: newToken,
+        session_token_x: newTokenX,
         pubkey,
         session_tree_indices: merkleProof.pathIndices,
         session_tree_siblings: merkleProof.siblings,

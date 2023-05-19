@@ -5,17 +5,18 @@ import prover from '../../provers/default.js'
 import { poseidon1, poseidon2, poseidon3 } from 'poseidon-lite'
 import { IncrementalMerkleTree } from '@zk-kit/incremental-merkle-tree'
 import CircuitConfig from '../../src/CircuitConfig.js'
-import { F } from '../../src/math.js'
+import { F, modinv, safemod, calcsecret } from '../../src/math.js'
 
 const { SESSION_TREE_DEPTH } = new CircuitConfig()
 
 test('should generate an add token proof', async (t) => {
   const pubkey = randomf(F)
-  const secret = randomf(F)
-  const a = randomf(F)
-  const s0 = (1n * a + secret) % F
-  const shareCount = 12n
-  const sessionToken = (shareCount * a + secret) % F
+  const s0 = randomf(F)
+  const token = randomf(F)
+  const tokenX = randomf(F)
+
+  const secret = calcsecret(s0, token, tokenX)
+
   const oldSessionTree = new IncrementalMerkleTree(
     poseidon2,
     SESSION_TREE_DEPTH,
@@ -32,16 +33,15 @@ test('should generate an add token proof', async (t) => {
     oldSessionTree.insert(e)
     newSessionTree.insert(e)
   }
-  oldSessionTree.insert(0)
-  newSessionTree.insert(poseidon1([sessionToken]))
+  oldSessionTree.insert(0n)
+  newSessionTree.insert(poseidon1([token]))
   const merkleProof = oldSessionTree.createProof(index)
   const { proof, publicSignals } = await prover.genProofAndPublicSignals(
     'addToken',
     {
       s0,
-      secret,
-      share_count: shareCount,
-      session_token: sessionToken,
+      session_token: token,
+      session_token_x: tokenX,
       pubkey,
       session_tree_indices: merkleProof.pathIndices,
       session_tree_siblings: merkleProof.siblings,
@@ -50,13 +50,13 @@ test('should generate an add token proof', async (t) => {
   )
   const oldIdentityRoot = poseidon2([
     pubkey,
-    poseidon2([oldSessionTree.root, poseidon3([secret, s0, shareCount])]),
+    poseidon2([oldSessionTree.root, poseidon2([secret, s0])]),
   ])
   const newIdentityRoot = poseidon2([
     pubkey,
-    poseidon2([newSessionTree.root, poseidon3([secret, s0, shareCount + 1n])]),
+    poseidon2([newSessionTree.root, poseidon2([secret, s0])]),
   ])
   t.is(publicSignals[0], oldIdentityRoot.toString())
   t.is(publicSignals[1], newIdentityRoot.toString())
-  t.is(publicSignals[2], poseidon1([sessionToken]).toString())
+  t.is(publicSignals[2], poseidon1([token]).toString())
 })

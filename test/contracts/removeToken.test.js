@@ -8,7 +8,7 @@ const AddTokenProof = require('../../src/AddTokenProof')
 const RemoveTokenProof = require('../../src/RemoveTokenProof')
 const { poseidon2 } = require('poseidon-lite/poseidon2')
 const { poseidon1 } = require('poseidon-lite/poseidon1')
-const { safemod, F } = require('../../src/math')
+const { calcsecret, safemod, F } = require('../../src/math')
 const { IncrementalMerkleTree } = require('@zk-kit/incremental-merkle-tree')
 const CircuitConfig = require('../../src/CircuitConfig')
 
@@ -32,7 +32,8 @@ describe('removeToken', function () {
     const s0 = randomf(F)
     // the initial session token
     const sessionToken = randomf(F)
-    const secret = safemod(2n * s0 - sessionToken)
+    const sessionTokenX = randomf(F)
+    const secret = calcsecret(s0, sessionToken, sessionTokenX)
 
     // first register an identity
     let pubkey
@@ -42,6 +43,7 @@ describe('removeToken', function () {
         {
           s0,
           session_token: sessionToken,
+          session_token_x: sessionTokenX,
           backup_tree_root: randomf(F),
         }
       )
@@ -55,8 +57,9 @@ describe('removeToken', function () {
     }
 
     // then add a token
-    let shareCount = 3n
-    const newToken = safemod(secret + (s0 - secret) * shareCount)
+    const a = safemod(s0 - secret)
+    const newTokenX = randomf(F)
+    const newToken = safemod(newTokenX * a + secret)
 
     const sessionTree = new IncrementalMerkleTree(
       poseidon2,
@@ -72,9 +75,8 @@ describe('removeToken', function () {
         'addToken',
         {
           s0,
-          secret,
-          share_count: shareCount,
           session_token: newToken,
+          session_token_x: newTokenX,
           pubkey,
           session_tree_indices: merkleProof.pathIndices,
           session_tree_siblings: merkleProof.siblings,
@@ -89,9 +91,6 @@ describe('removeToken', function () {
         .then((t) => t.wait())
     }
 
-    // share count is incremented in the addToken proof
-    shareCount++
-
     // then remove the initial token
 
     const authMerkleProof = sessionTree.createProof(1)
@@ -100,9 +99,8 @@ describe('removeToken', function () {
       'removeToken',
       {
         s0,
-        secret,
-        share_count: shareCount,
         session_token: newToken,
+        session_token_x: newTokenX,
         pubkey,
         session_tree_indices: authMerkleProof.pathIndices,
         session_tree_siblings: authMerkleProof.siblings,

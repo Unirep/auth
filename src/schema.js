@@ -32,7 +32,6 @@ const _schema = [
     rows: [
       ['pubkey', 'String', { unique: true }],
       ['s0', 'String'],
-      ['shareCount', 'Int'],
     ],
   },
   {

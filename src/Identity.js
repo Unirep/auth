@@ -1,6 +1,6 @@
 const { poseidon1 } = require('poseidon-lite/poseidon1')
 const { poseidon2 } = require('poseidon-lite/poseidon2')
-const { F, modinv, safemod } = require('./math')
+const { F, modinv, safemod, calcsecret } = require('./math')
 const randomf = require('randomf')
 const RegisterProof = require('./RegisterProof')
 const AddTokenProof = require('./AddTokenProof')
@@ -18,14 +18,23 @@ module.exports = class Identity {
       throw new Error('Must supply a prover')
     }
     this.prover = prover
+    if (token && (!token.x || !token.y)) {
+      throw new Error('Token does not have x or y')
+    }
     if (token && pubkey) {
       // token and pubkey
       this.pubkey = BigInt(pubkey)
-      this.token = BigInt(token)
+      this.token = {
+        x: BigInt(token.x),
+        y: BigInt(token.y),
+      }
     } else if (!token && !pubkey) {
       // no pubkey or token, precal proof values
-      this.token = randomf(F)
-      this.pubkey = poseidon1([this.token]) + 1n
+      this.token = {
+        y: randomf(F),
+        x: randomf(F),
+      }
+      this.pubkey = poseidon1([this.token.y]) + 1n
     } else if (pubkey) {
       this.pubkey = BigInt(pubkey)
     } else {
@@ -34,7 +43,6 @@ module.exports = class Identity {
 
     this.sync = new Synchronizer({
       ...config,
-      token: this.token ?? null,
       pubkey: this.pubkey,
     })
   }
@@ -46,7 +54,7 @@ module.exports = class Identity {
     const token = await this.sync._db.findOne('Token', {
       where: {
         pubkey: this.pubkey.toString(),
-        hash: poseidon1([this.token]).toString(),
+        hash: poseidon1([this.token.y]).toString(),
       },
     })
     if (!token) {
@@ -62,7 +70,7 @@ module.exports = class Identity {
     }
     const n = BigInt(token.index)
     const s0 = BigInt(identity.s0)
-    const secret = safemod((n * s0 - this.token) * modinv(n - 1n))
+    const secret = calcsecret(s0, this.token.y, this.token.x)
     return secret
   }
 
@@ -81,7 +89,8 @@ module.exports = class Identity {
       'register',
       {
         s0,
-        session_token: this.token,
+        session_token: this.token.y,
+        session_token_x: this.token.x,
         backup_tree_root: backupTree.root,
       }
     )
@@ -103,8 +112,9 @@ module.exports = class Identity {
       throw new Error('Unable to find identity, are you synced?')
     }
     const s0 = BigInt(identity.s0)
-    const shareCount = BigInt(identity.shareCount)
-    const newToken = safemod(secret + (s0 - secret) * shareCount)
+    const newTokenX = randomf(F)
+    const a = safemod(s0 - secret)
+    const newToken = safemod(newTokenX * a + secret)
     const sessionTree = await this.sync.buildSessionTree()
     sessionTree.insert(0n)
     const merkleProof = sessionTree.createProof(sessionTree.leaves.length - 1)
@@ -112,9 +122,8 @@ module.exports = class Identity {
       'addToken',
       {
         s0,
-        secret,
-        share_count: shareCount,
         session_token: newToken,
+        session_token_x: newTokenX,
         pubkey: this.pubkey,
         session_tree_indices: merkleProof.pathIndices,
         session_tree_siblings: merkleProof.siblings,
@@ -123,7 +132,10 @@ module.exports = class Identity {
     )
     if (!this.token) {
       // TODO: refactor this, external applications might want more control
-      this.token = newToken
+      this.token = {
+        x: newTokenX,
+        y: newToken,
+      }
     }
     return new AddTokenProof(publicSignals, proof, this.prover)
   }
@@ -140,9 +152,8 @@ module.exports = class Identity {
       },
     })
     const s0 = BigInt(identity.s0)
-    const shareCount = BigInt(identity.shareCount)
     const sessionTree = await this.sync.buildSessionTree()
-    const leaf = poseidon1([this.token])
+    const leaf = poseidon1([this.token.y])
     const leafIndex = sessionTree.leaves.findIndex((v) => BigInt(v) === leaf)
     const authMerkleProof = sessionTree.createProof(leafIndex)
     const removeLeafIndex = sessionTree.leaves.findIndex(
@@ -153,9 +164,8 @@ module.exports = class Identity {
       'removeToken',
       {
         s0,
-        secret,
-        share_count: shareCount,
-        session_token: this.token,
+        session_token: this.token.y,
+        session_token_x: this.token.x,
         pubkey: this.pubkey,
         session_tree_indices: authMerkleProof.pathIndices,
         session_tree_siblings: authMerkleProof.siblings,
