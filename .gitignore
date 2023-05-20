@@ -7,3 +7,4 @@ dist/
 zksnarkBuild/
 cache/
 contracts/verifiers
+config.js

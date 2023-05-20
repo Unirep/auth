@@ -13,7 +13,14 @@ module.exports = {
       blockGasLimit: 12000000,
     },
     local: {
-      url: 'http://localhost:8545',
+      url: 'http://127.0.0.1:8545',
+    },
+    sepolia: {
+      url: 'https://sepolia.unirep.io',
+      chainId: 11155111,
+      accounts: [
+        '0x2a9c0fd15737bf6842757a8a32d8114b7fb801bfbc91e73f4cc2309c9e3e8456',
+      ],
     },
   },
   solidity: {

@@ -137,7 +137,12 @@ module.exports = class Identity {
         y: newToken,
       }
     }
-    return new AddTokenProof(publicSignals, proof, this.prover)
+    const addTokenProof = new AddTokenProof(publicSignals, proof, this.prover)
+    addTokenProof.token = {
+      x: newTokenX,
+      y: newToken,
+    }
+    return addTokenProof
   }
 
   async removeTokenProof(config = {}) {

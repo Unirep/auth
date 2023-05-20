@@ -346,7 +346,7 @@ module.exports = class Synchronizer extends EventEmitter {
     db.create('Token', {
       pubkey: toDecString(pubkey),
       hash: toDecString(tokenHash),
-      index: count + 2, // initial token is at index 2
+      index: count,
     })
     db.create('Identity', {
       s0: toDecString(s0),
@@ -362,7 +362,7 @@ module.exports = class Synchronizer extends EventEmitter {
     db.create('Token', {
       pubkey: toDecString(pubkey),
       hash: toDecString(tokenHash),
-      index: count + 2, // initial token is at index 2
+      index: count,
     })
   }
 
