@@ -102,7 +102,10 @@ module.exports = class Synchronizer extends EventEmitter {
 
   async setup() {
     if (this.setupPromise) return this.setupPromise
-    this.setupPromise = this._setup()
+    this.setupPromise = this._setup().catch((err) => {
+      this.setupPromise = undefined
+      throw err
+    })
     return this.setupPromise
   }
 
@@ -142,6 +145,7 @@ module.exports = class Synchronizer extends EventEmitter {
   }
 
   async buildSessionTree(pubkey = this.pubkey) {
+    await this.setup()
     const leaves = await this._db.findMany('Token', {
       where: {
         pubkey: toDecString(pubkey),
