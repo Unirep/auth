@@ -104,6 +104,7 @@ module.exports = class Synchronizer extends EventEmitter {
     if (this.setupPromise) return this.setupPromise
     this.setupPromise = this._setup().catch((err) => {
       this.setupPromise = undefined
+      this.setupComplete = false
       throw err
     })
     return this.setupPromise
