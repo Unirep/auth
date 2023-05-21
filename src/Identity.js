@@ -76,6 +76,7 @@ module.exports = class Identity {
 
   async registerProof() {
     const s0 = randomf(F)
+    await this.sync?.setup()
     const { backupTreeDepth } = this.sync?.settings
     const backupTree = new IncrementalMerkleTree(poseidon2, backupTreeDepth, 0n)
     const backupCodes = []
