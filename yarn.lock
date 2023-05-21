@@ -847,6 +847,11 @@
   dependencies:
     "@types/node" "*"
 
+"@ungap/structured-clone@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@ungap/structured-clone/-/structured-clone-1.2.0.tgz#756641adb587851b5ccb3e095daf27ae581c8406"
+  integrity sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==
+
 "@zk-kit/incremental-merkle-tree@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@zk-kit/incremental-merkle-tree/-/incremental-merkle-tree-1.1.0.tgz#6b0ccce56f9e05ccf73f7ea4fa746d5ef7d24b1d"
@@ -929,11 +934,12 @@ aggregate-error@^4.0.0:
     clean-stack "^4.0.0"
     indent-string "^5.0.0"
 
-anondb@^0.0.17:
-  version "0.0.17"
-  resolved "https://registry.yarnpkg.com/anondb/-/anondb-0.0.17.tgz#f3fbb28dd5cd75e8684208a7208f47a876d0d542"
-  integrity sha512-ihjIJQhAhFkBp76fXzEGb6L1qNrzu5qkL3r4aFuZEIe83fXNkZ9KabUtiJfAq3DwmSJCRp6pZwAynkoZOCxmCQ==
+anondb@^0.0.21:
+  version "0.0.21"
+  resolved "https://registry.yarnpkg.com/anondb/-/anondb-0.0.21.tgz#6885dd4e535102c2f537ca171038b3c5f1c5faa3"
+  integrity sha512-0FR5NpjSI0E7R5r2Ok9O0xziUBbJanprTQzu2lM+szbUOckYDOQw42tWxvCfiamzhZDqcD7MHCLCs1tehf3P1Q==
   dependencies:
+    "@ungap/structured-clone" "^1.2.0"
     async-lock "^1.2.11"
     idb "^6.0.0"
     nanoid "^3.1.30"

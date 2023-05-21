@@ -26,7 +26,7 @@ module.exports = class Synchronizer extends EventEmitter {
       sesionTreeDepth: 0,
       backupTreeDepth: 0,
     }
-    this.pollRate = 2000
+    this.pollRate = 4000
     this.blockRate = 100000
     this.lock = new AsyncLock()
 
@@ -56,7 +56,8 @@ module.exports = class Synchronizer extends EventEmitter {
         // set this up here to avoid re-binding on every call
         const handler = this[`handle${name}`].bind(this)
         handlers[topic] = ({ event, ...args }) => {
-          const decodedData = contract.interface.decodeEventLog(
+          const { contract: _contract } = this.contracts[address]
+          const decodedData = _contract.interface.decodeEventLog(
             name,
             event.data,
             event.topics
@@ -100,6 +101,12 @@ module.exports = class Synchronizer extends EventEmitter {
   }
 
   async setup() {
+    if (this.setupPromise) return this.setupPromise
+    this.setupPromise = this._setup()
+    return this.setupPromise
+  }
+
+  async _setup() {
     if (this.setupComplete) return
     const config = await this.contract.config()
     this.settings.sessionTreeDepth = config.sessionTreeDepth
@@ -158,16 +165,18 @@ module.exports = class Synchronizer extends EventEmitter {
    * Start polling the blockchain for new events. If we're behind the HEAD
    * block we'll poll many times quickly
    */
-  async start() {
-    await this.setup()
+  start() {
+    const pollId = nanoid()
+    this.pollId = pollId
     ;(async () => {
-      const pollId = nanoid()
-      this.pollId = pollId
+      await this.setup()
+      if (this.pollId !== pollId) return
       const minBackoff = 128
       let backoff = minBackoff
       for (;;) {
         // poll repeatedly until we're up to date
         try {
+          if (this.pollId !== pollId) return
           const { complete } = await this.poll()
           if (complete) break
           backoff = Math.max(backoff / 2, minBackoff)
@@ -223,6 +232,7 @@ module.exports = class Synchronizer extends EventEmitter {
     const latestBlock = await this.provider.getBlockNumber()
     const blockStart = latestProcessed + 1
     const blockEnd = Math.min(+latestBlock, blockStart + this.blockRate)
+    if (blockStart > latestBlock) return { complete: true }
 
     const newEvents = await this.loadNewEvents(latestProcessed + 1, blockEnd)
 

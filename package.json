@@ -12,7 +12,7 @@
     "deploy": "hardhat run scripts/deploy.mjs"
   },
   "dependencies": {
-    "anondb": "^0.0.17",
+    "anondb": "^0.0.21",
     "nanoid": "3",
     "poseidon-solidity": "^0.0.5",
     "snarkjs": "^0.6.11",
