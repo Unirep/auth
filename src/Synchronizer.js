@@ -255,7 +255,7 @@ module.exports = class Synchronizer extends EventEmitter {
         latestCompleteBlock: blockEnd,
       },
     })
-
+    this.emit('pollEnd')
     return {
       complete: latestBlock === blockEnd,
     }
