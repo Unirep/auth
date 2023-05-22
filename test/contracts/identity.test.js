@@ -75,6 +75,56 @@ describe('Identity', function () {
     assert.equal(sessionTree.leaves.length, 2)
   })
 
+  it('should register and then recover identity', async () => {
+    const { deploy } = await import('../../deploy/deploy.mjs')
+    const accounts = await ethers.getSigners()
+    const contract = await deploy(accounts[0])
+
+    const id = new Identity({
+      prover,
+      address: contract.address,
+      provider: ethers.provider,
+    })
+    await id.sync.start()
+
+    {
+      const registerProof = await id.registerProof()
+      const { publicSignals, proof } = registerProof
+      await contract
+        .connect(accounts[0])
+        .register(publicSignals, proof)
+        .then((t) => t.wait())
+    }
+
+    await id.sync.waitForSync()
+
+    const recoveryCode = await id.sync._db.findOne('RecoveryCode', {
+      where: {
+        pubkey: id.pubkey.toString(),
+      },
+    })
+    const recoverProof = await id.recoveryProof({
+      recoveryCode: recoveryCode.code,
+    })
+    const { publicSignals, proof } = recoverProof
+    await contract
+      .connect(accounts[0])
+      .recoverIdentity(publicSignals, proof)
+      .then((t) => t.wait())
+    await id.sync.waitForSync()
+
+    const nullifierCount = await id.sync._db.count('RecoveryNullifier', {
+      hash: recoverProof.backupNullifier.toString(),
+    })
+    expect(nullifierCount).to.equal(1)
+    const identity = await id.sync._db.findOne('Identity', {
+      where: {
+        pubkey: id.pubkey.toString(),
+      },
+    })
+    expect(identity.s0).to.equal(recoverProof.s0.toString())
+  })
+
   it('should initialize with no token', async () => {
     const { deploy } = await import('../../deploy/deploy.mjs')
     const accounts = await ethers.getSigners()

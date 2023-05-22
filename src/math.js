@@ -39,9 +39,38 @@ const calcsecret = (s0, token, tokenX, _F = F) => {
   return safemod(safemod(tokenX * s0 - token, _F) * modinv(tokenX - 1n, _F), _F)
 }
 
+const encodeProof = (proof) => {
+  // encode the leaf and each sibling as 32 byte values
+  // encode each sibling index as a single character at the end
+  const { leaf, pathIndices, siblings } = proof
+  const toPadded = (v) => BigInt(v).toString(16).padStart(64, '0')
+  return [
+    toPadded(leaf),
+    ...siblings.map(([s]) => toPadded(s)),
+    ...pathIndices.map((p) => p.toString()),
+  ].join('')
+}
+
+const decodeProof = (recoveryCode) => {
+  const leaf = BigInt(`0x${recoveryCode.slice(0, 64)}`)
+  const siblingsCount = Math.floor(recoveryCode.slice(64).length / 64)
+  const siblings = []
+  for (let x = 0; x < siblingsCount; x++) {
+    const s = recoveryCode.slice(64 + 64 * x, 64 + 64 * (x + 1))
+    siblings.push([BigInt(`0x${s}`)])
+  }
+  const pathIndices = recoveryCode
+    .slice(-1 * (recoveryCode.length % 64))
+    .split('')
+    .map((v) => BigInt(v))
+  return { leaf, pathIndices, siblings }
+}
+
 module.exports = {
   calcsecret,
   safemod,
   modinv,
   F,
+  encodeProof,
+  decodeProof,
 }

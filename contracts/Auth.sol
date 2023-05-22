@@ -25,7 +25,12 @@ contract Auth {
   event Register(uint indexed pubkey, uint tokenHash, uint s0);
   event AddToken(uint indexed pubkey, uint tokenHash);
   event RemoveToken(uint indexed pubkey, uint tokenHash);
-  event RecoverIdentity(uint indexed pubkey, uint tokenHash, uint s0);
+  event RecoverIdentity(
+    uint indexed pubkey,
+    uint tokenHash,
+    uint s0,
+    uint nullifier
+  );
 
   struct Config {
     uint8 sessionTreeDepth;
@@ -159,6 +164,6 @@ contract Auth {
 
     uint tokenHash = publicSignals[3];
     uint s0 = publicSignals[5];
-    emit RecoverIdentity(pubkey, tokenHash, s0);
+    emit RecoverIdentity(pubkey, tokenHash, s0, nullifier);
   }
 }

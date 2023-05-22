@@ -93,7 +93,12 @@ describe('recoverIdentity', function () {
       .recoverIdentity(recoverProof.publicSignals, recoverProof.proof)
     await expect(tx)
       .to.emit(contract, 'RecoverIdentity')
-      .withArgs(pubkey, recoverProof.tokenHash, recoverProof.s0)
+      .withArgs(
+        pubkey,
+        recoverProof.tokenHash,
+        recoverProof.s0,
+        poseidon1([backupCode])
+      )
 
     const identity = await contract.identities(pubkey)
     assert.equal(identity.identityRoot, recoverProof.identityRoot)

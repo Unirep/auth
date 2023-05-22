@@ -42,6 +42,17 @@ const _schema = [
       ['index', 'Int'],
     ],
   },
+  {
+    name: 'RecoveryCode',
+    rows: [
+      ['pubkey', 'String'],
+      ['code', 'String'],
+    ],
+  },
+  {
+    name: 'RecoveryNullifier',
+    rows: [['hash', 'String']],
+  },
 ]
 
 /**

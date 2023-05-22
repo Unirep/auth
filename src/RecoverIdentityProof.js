@@ -10,5 +10,6 @@ module.exports = class RecoverIdentityProof extends BaseProof {
     this.tokenHash = publicSignals[3]
     this.pubkey = publicSignals[4]
     this.s0 = publicSignals[5]
+    this.token = null
   }
 }

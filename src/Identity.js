@@ -1,10 +1,18 @@
 const { poseidon1 } = require('poseidon-lite/poseidon1')
 const { poseidon2 } = require('poseidon-lite/poseidon2')
-const { F, modinv, safemod, calcsecret } = require('./math')
+const {
+  F,
+  modinv,
+  safemod,
+  calcsecret,
+  encodeProof,
+  decodeProof,
+} = require('./math')
 const randomf = require('randomf')
 const RegisterProof = require('./RegisterProof')
 const AddTokenProof = require('./AddTokenProof')
 const RemoveTokenProof = require('./RemoveTokenProof')
+const RecoverIdentityProof = require('./RecoverIdentityProof')
 const Synchronizer = require('./Synchronizer')
 const { IncrementalMerkleTree } = require('@zk-kit/incremental-merkle-tree')
 
@@ -85,6 +93,10 @@ module.exports = class Identity {
       backupCodes.push(code)
       backupTree.insert(code)
     }
+    const recoveryCodes = backupCodes.map((v, i) => {
+      const merkleProof = backupTree.createProof(i)
+      return encodeProof(merkleProof)
+    })
     // TODO: store the backup tree in DB
     const { publicSignals, proof } = await this.prover.genProofAndPublicSignals(
       'register',
@@ -99,6 +111,13 @@ module.exports = class Identity {
     if (regProof.pubkey !== this.pubkey) {
       throw new Error('pubkey mismatch')
     }
+    await this.sync._db.create(
+      'RecoveryCode',
+      recoveryCodes.map((code) => ({
+        pubkey: this.pubkey.toString(),
+        code,
+      }))
+    )
     return regProof
   }
 
@@ -182,5 +201,42 @@ module.exports = class Identity {
       }
     )
     return new RemoveTokenProof(publicSignals, proof, this.prover)
+  }
+
+  async recoveryProof(config = {}) {
+    const { recoveryCode } = config
+    const parsedProof = decodeProof(recoveryCode)
+    const s0 = randomf(F)
+    const token = {
+      x: randomf(F),
+      y: randomf(F),
+    }
+    {
+      const usedNullifier = await this.sync._db.findOne('RecoveryNullifier', {
+        where: {
+          hash: poseidon1([parsedProof.leaf]).toString(),
+        },
+      })
+      if (usedNullifier) throw new Error('Nullifier has already been used')
+    }
+    const { publicSignals, proof } = await this.prover.genProofAndPublicSignals(
+      'recoverIdentity',
+      {
+        new_s0: s0,
+        new_session_token: token.y,
+        new_session_token_x: token.x,
+        backup_tree_indices: parsedProof.pathIndices,
+        backup_tree_siblings: parsedProof.siblings,
+        backup_code: parsedProof.leaf,
+        pubkey: this.pubkey,
+      }
+    )
+    const recoverProof = new RecoverIdentityProof(
+      publicSignals,
+      proof,
+      this.prover
+    )
+    recoverProof.token = token
+    return recoverProof
   }
 }

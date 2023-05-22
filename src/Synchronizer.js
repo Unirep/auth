@@ -355,13 +355,10 @@ module.exports = class Synchronizer extends EventEmitter {
 
   async handleRegister({ event, db, decodedData }) {
     const { pubkey, s0, tokenHash } = decodedData
-    const count = await this._db.count('Token', {
-      pubkey: toDecString(pubkey),
-    })
     db.create('Token', {
       pubkey: toDecString(pubkey),
       hash: toDecString(tokenHash),
-      index: count,
+      index: 0,
     })
     db.create('Identity', {
       s0: toDecString(s0),
@@ -394,5 +391,28 @@ module.exports = class Synchronizer extends EventEmitter {
     })
   }
 
-  async handleRecoverIdentity({ event, db, decodedData }) {}
+  async handleRecoverIdentity({ event, db, decodedData }) {
+    const { pubkey, tokenHash, s0, nullifier } = decodedData
+    db.delete('Token', {
+      where: {
+        pubkey: toDecString(pubkey),
+      },
+    })
+    db.update('Identity', {
+      where: {
+        pubkey: toDecString(pubkey),
+      },
+      update: {
+        s0: toDecString(s0),
+      },
+    })
+    db.create('Token', {
+      pubkey: toDecString(pubkey),
+      hash: toDecString(tokenHash),
+      index: 0,
+    })
+    db.create('RecoveryNullifier', {
+      hash: toDecString(nullifier),
+    })
+  }
 }
