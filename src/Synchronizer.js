@@ -62,6 +62,7 @@ module.exports = class Synchronizer extends EventEmitter {
             event.data,
             event.topics
           )
+          this.emit(name, { decodedData, event, ...args })
           // call the handler with the event and decodedData
           return handler({ decodedData, event, ...args })
             .then((r) => {
