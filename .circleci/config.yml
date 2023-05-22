@@ -3,7 +3,8 @@ workflows:
   lint_and_test:
     jobs:
       - lint
-      - contracts-test
+      - contracts-test:
+          context: web3-storage
       - circuits-test
 
 # Just for reusing below
@@ -67,7 +68,13 @@ jobs:
           command: yarn build
       - run:
           name: Test
-          command: yarn test:contracts
+          command: yarn test:contracts:coverage
+      - run:
+          name: Upload Coverage
+          command: node scripts/uploadCoverage.mjs
+      - run:
+          name: Badge Purge
+          command: npx camo-purge@1.0.2 --repository https://github.com/unirep/auth
   circuits-test:
     resource_class: large
     machine:

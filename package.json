@@ -8,15 +8,17 @@
     "build:contracts": "hardhat compile && node scripts/buildVerifiers.mjs && node scripts/abi.mjs",
     "build": "yarn build:circuits && yarn build:contracts",
     "test:contracts": "hardhat test",
+    "test:contracts:coverage": "hardhat coverage && yarn badge:contracts",
     "test:circuits": "ava --no-worker-threads ./test/circuits/*.test.mjs",
-    "deploy": "hardhat run scripts/deploy.mjs"
+    "deploy": "hardhat run scripts/deploy.mjs",
+    "badge:contracts": "lcov-badge-generator ./coverage/lcov.info -l contracts -o coverage/lcov-report/badge.svg"
   },
   "dependencies": {
     "anondb": "^0.0.21",
+    "ethers": "^5.7.2",
     "nanoid": "3",
     "poseidon-solidity": "^0.0.5",
-    "snarkjs": "^0.6.11",
-    "ethers": "^5.7.2"
+    "snarkjs": "^0.6.11"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",
@@ -26,9 +28,13 @@
     "chai": "^4.3.7",
     "global-factory": "^0.0.2",
     "hardhat": "^2.14.0",
+    "lcov-badge-generator": "^1.0.5",
+    "node-fetch": "^3.3.1",
     "poseidon-lite": "^0.2.0",
     "prettier": "^2.8.8",
     "prettier-plugin-solidity": "^1.1.3",
-    "randomf": "^0.0.3"
+    "randomf": "^0.0.3",
+    "solidity-coverage": "^0.8.2",
+    "web3.storage": "^4.5.4"
   }
 }

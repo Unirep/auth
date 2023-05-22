@@ -8,3 +8,5 @@ zksnarkBuild/
 cache/
 contracts/verifiers
 config.js
+coverage/
+coverage.json

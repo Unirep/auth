@@ -1,6 +1,7 @@
 require('hardhat/config')
 require('@nomiclabs/hardhat-ethers')
 require('@nomicfoundation/hardhat-chai-matchers')
+require('solidity-coverage')
 
 module.exports = {
   defaultNetwork: 'hardhat',
