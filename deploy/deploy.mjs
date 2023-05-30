@@ -48,6 +48,27 @@ export const deploy = async (deployer, config) => {
     verifiers[circuit] = verifierContract.address
   }
 
+  // Deploy lazy merkle tree
+  console.log('Deploying LazyMerkleTree')
+  let merkleTreeContract
+  {
+    const artifacts = await tryPath(
+      'contracts/libraries/LazyMerkleTree.sol/LazyMerkleTree.json'
+    )
+    const { bytecode, abi } = artifacts
+    const _merkleTreeFactory = new ethers.ContractFactory(
+      abi,
+      linkLibrary(bytecode, {
+        ['poseidon-solidity/PoseidonT3.sol:PoseidonT3']: PoseidonT3.address,
+      }),
+      deployer
+    )
+
+    const merkleTreeFactory = await GlobalFactory(_merkleTreeFactory)
+    merkleTreeContract = await retryAsNeeded(() => merkleTreeFactory.deploy())
+    await merkleTreeContract.deployed()
+  }
+
   console.log('Deploying Auth')
 
   const artifacts = await tryPath('contracts/Auth.sol/Auth.json')
@@ -57,6 +78,8 @@ export const deploy = async (deployer, config) => {
     abi,
     linkLibrary(bytecode, {
       ['poseidon-solidity/PoseidonT3.sol:PoseidonT3']: PoseidonT3.address,
+      ['contracts/libraries/LazyMerkleTree.sol:LazyMerkleTree']:
+        merkleTreeContract.address,
     }),
     deployer
   )

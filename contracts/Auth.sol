@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import 'poseidon-solidity/PoseidonT3.sol';
 import {IVerifier} from './interfaces/IVerifier.sol';
+import {LazyMerkleTree, LazyTreeData} from './libraries/LazyMerkleTree.sol';
 
 contract Auth {
   uint constant F =
@@ -22,6 +23,9 @@ contract Auth {
   // used backup code nullifiers
   mapping(uint => bool) public backupCodeNullifiers;
 
+  LazyTreeData public treeData;
+  mapping(uint => uint40) pubkeyIndices;
+
   event Register(uint indexed pubkey, uint tokenHash, uint s0);
   event AddToken(uint indexed pubkey, uint tokenHash);
   event RemoveToken(uint indexed pubkey, uint tokenHash);
@@ -31,6 +35,7 @@ contract Auth {
     uint s0,
     uint nullifier
   );
+  event TreeChanged(uint indexed index, uint newLeaf);
 
   struct Config {
     uint8 sessionTreeDepth;
@@ -57,7 +62,16 @@ contract Auth {
     recoverIdentityVerifier = _recoverIdentityVerifier;
     config = _config;
 
+    LazyMerkleTree.init(treeData, 20);
+    // fill the first index to prevent 0 mappings
+    // in pubkeyIndices
+    LazyMerkleTree.insert(treeData, 0);
+    emit TreeChanged(0, 0);
     emit Register(0, 0, 0);
+  }
+
+  function identityTreeRoot() public view returns (uint) {
+    return LazyMerkleTree.root(treeData);
   }
 
   function register(
@@ -81,6 +95,11 @@ contract Auth {
 
     uint s0 = publicSignals[2];
     emit Register(pubkey, tokenHash, s0);
+
+    uint40 leafIndex = treeData.numberOfLeaves;
+    pubkeyIndices[pubkey] = leafIndex;
+    LazyMerkleTree.insert(treeData, identityRoot);
+    emit TreeChanged(leafIndex, identityRoot);
   }
 
   // authenticate a new identity token for an identity
@@ -107,6 +126,10 @@ contract Auth {
 
     uint tokenHash = publicSignals[2];
     emit AddToken(pubkey, tokenHash);
+
+    uint40 leafIndex = pubkeyIndices[pubkey];
+    LazyMerkleTree.update(treeData, toIdentityRoot, leafIndex);
+    emit TreeChanged(leafIndex, toIdentityRoot);
   }
 
   // deactivate a specific identity token
@@ -133,6 +156,10 @@ contract Auth {
 
     uint tokenHash = publicSignals[2];
     emit RemoveToken(pubkey, tokenHash);
+
+    uint40 leafIndex = pubkeyIndices[pubkey];
+    LazyMerkleTree.update(treeData, toIdentityRoot, leafIndex);
+    emit TreeChanged(leafIndex, toIdentityRoot);
   }
 
   // reset an identity using a backup code
@@ -165,5 +192,9 @@ contract Auth {
     uint tokenHash = publicSignals[3];
     uint s0 = publicSignals[5];
     emit RecoverIdentity(pubkey, tokenHash, s0, nullifier);
+
+    uint40 leafIndex = pubkeyIndices[pubkey];
+    LazyMerkleTree.update(treeData, identityRoot, leafIndex);
+    emit TreeChanged(leafIndex, identityRoot);
   }
 }

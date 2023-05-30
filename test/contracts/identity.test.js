@@ -73,6 +73,10 @@ describe('Identity', function () {
     await id.sync.waitForSync()
     const sessionTree = await id.sync.buildSessionTree()
     assert.equal(sessionTree.leaves.length, 2)
+
+    const identityTree = await id.sync.buildIdentityTree()
+    const identityTreeRoot = await contract.identityTreeRoot()
+    assert.equal(identityTree.root.toString(), identityTreeRoot.toString())
   })
 
   it('should register and then recover identity', async () => {
@@ -123,6 +127,10 @@ describe('Identity', function () {
       },
     })
     expect(identity.s0).to.equal(recoverProof.s0.toString())
+
+    const identityTree = await id.sync.buildIdentityTree()
+    const identityTreeRoot = await contract.identityTreeRoot()
+    assert.equal(identityTree.root.toString(), identityTreeRoot.toString())
   })
 
   it('should initialize with no token', async () => {
@@ -252,5 +260,9 @@ describe('Identity', function () {
     await id.sync.waitForSync()
     id2.sync.stop()
     id.sync.stop()
+
+    const identityTree = await id.sync.buildIdentityTree()
+    const identityTreeRoot = await contract.identityTreeRoot()
+    assert.equal(identityTree.root.toString(), identityTreeRoot.toString())
   })
 })

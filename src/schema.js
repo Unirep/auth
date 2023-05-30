@@ -53,6 +53,13 @@ const _schema = [
     name: 'RecoveryNullifier',
     rows: [['hash', 'String']],
   },
+  {
+    name: 'IdentityTreeLeaf',
+    rows: [
+      ['index', 'Int', { unique: true }],
+      ['value', 'String'],
+    ],
+  },
 ]
 
 /**

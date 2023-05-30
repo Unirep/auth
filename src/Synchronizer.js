@@ -167,6 +167,22 @@ module.exports = class Synchronizer extends EventEmitter {
     return tree
   }
 
+  async buildIdentityTree() {
+    await this.setup()
+    const leaves = await this._db.findMany('IdentityTreeLeaf', {
+      where: {},
+      orderBy: {
+        index: 'asc',
+      },
+    })
+    const depth = Math.ceil(Math.log2(leaves.length))
+    const tree = new IncrementalMerkleTree(poseidon2, depth, 0n)
+    for (const leaf of leaves) {
+      tree.insert(leaf.value)
+    }
+    return tree
+  }
+
   /**
    * Start polling the blockchain for new events. If we're behind the HEAD
    * block we'll poll many times quickly
@@ -283,7 +299,13 @@ module.exports = class Synchronizer extends EventEmitter {
     return {
       [this.contract.address]: {
         contract: this.contract,
-        eventNames: ['Register', 'AddToken', 'RemoveToken', 'RecoverIdentity'],
+        eventNames: [
+          'Register',
+          'AddToken',
+          'RemoveToken',
+          'RecoverIdentity',
+          'TreeChanged',
+        ],
       },
     }
   }
@@ -414,6 +436,22 @@ module.exports = class Synchronizer extends EventEmitter {
     })
     db.create('RecoveryNullifier', {
       hash: toDecString(nullifier),
+    })
+  }
+
+  async handleTreeChanged({ event, db, decodedData }) {
+    const { index, newLeaf } = decodedData
+    db.upsert('IdentityTreeLeaf', {
+      where: {
+        index: Number(index),
+      },
+      update: {
+        value: toDecString(newLeaf),
+      },
+      create: {
+        index: Number(index),
+        value: toDecString(newLeaf),
+      },
     })
   }
 }
