@@ -11,4 +11,5 @@ export const circuitContents = {
   removeToken: `pragma circom 2.0.0; include "../circuits/removeToken.circom"; \n\ncomponent main { public [ session_leaf ] } = RemoveToken(${SESSION_TREE_DEPTH});`,
   recoverIdentity: `pragma circom 2.0.0; include "../circuits/recoverIdentity.circom"; \n\ncomponent main { public [ new_s0, pubkey ] } = RecoverIdentity(${SESSION_TREE_DEPTH}, ${BACKUP_TREE_DEPTH});`,
   anonAuth: `pragma circom 2.0.0; include "../circuits/anonAuth.circom"; \n\ncomponent main = AnonAuth(${SESSION_TREE_DEPTH}, ${IDENTITY_TREE_DEPTH});`,
+  merkleProof: `pragma circom 2.0.0; include "../circuits/incrementalMerkleTree.circom"; \n\ncomponent main = MerkleTreeInclusionProof(20);`,
 }
