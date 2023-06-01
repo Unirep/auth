@@ -73,7 +73,7 @@ describe('addToken', function () {
         session_token: newToken,
         session_token_x: newTokenX,
         pubkey,
-        session_tree_indices: merkleProof.pathIndices,
+        session_tree_leaf_index: 1,
         session_tree_siblings: merkleProof.siblings,
         old_session_tree_root: oldRoot,
       }

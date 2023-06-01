@@ -78,7 +78,7 @@ describe('removeToken', function () {
           session_token: newToken,
           session_token_x: newTokenX,
           pubkey,
-          session_tree_indices: merkleProof.pathIndices,
+          session_tree_leaf_index: 1,
           session_tree_siblings: merkleProof.siblings,
           old_session_tree_root: oldRoot,
         }
@@ -102,10 +102,10 @@ describe('removeToken', function () {
         session_token: newToken,
         session_token_x: newTokenX,
         pubkey,
-        session_tree_indices: authMerkleProof.pathIndices,
+        session_tree_leaf_index: 1,
         session_tree_siblings: authMerkleProof.siblings,
         old_session_tree_root: sessionTree.root,
-        session_tree_change_indices: removeMerkleProof.pathIndices,
+        session_tree_change_leaf_index: 0,
         session_tree_change_siblings: removeMerkleProof.siblings,
         session_leaf: poseidon1([sessionToken]),
       }

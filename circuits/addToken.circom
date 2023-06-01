@@ -13,7 +13,7 @@ template AddToken(SESSION_TREE_DEPTH) {
 
   signal input pubkey;
 
-  signal input session_tree_indices[SESSION_TREE_DEPTH];
+  signal input session_tree_leaf_index;
   signal input session_tree_siblings[SESSION_TREE_DEPTH];
   signal input old_session_tree_root;
 
@@ -31,8 +31,8 @@ template AddToken(SESSION_TREE_DEPTH) {
   // then check that 0 is in at the current merkle path
   component old_tree_proof = MerkleTreeInclusionProof(SESSION_TREE_DEPTH);
   old_tree_proof.leaf <== 0;
+  old_tree_proof.leaf_index <== session_tree_leaf_index;
   for (var x = 0; x < SESSION_TREE_DEPTH; x++) {
-    old_tree_proof.path_index[x] <== session_tree_indices[x];
     old_tree_proof.path_elements[x] <== session_tree_siblings[x];
   }
   old_tree_proof.root === old_session_tree_root;
@@ -53,8 +53,8 @@ template AddToken(SESSION_TREE_DEPTH) {
   // then calculate the new session tree root and identity root
   component new_tree_proof = MerkleTreeInclusionProof(SESSION_TREE_DEPTH);
   new_tree_proof.leaf <== token_hasher.out;
+  new_tree_proof.leaf_index <== session_tree_leaf_index;
   for (var x = 0; x < SESSION_TREE_DEPTH; x++) {
-    new_tree_proof.path_index[x] <== session_tree_indices[x];
     new_tree_proof.path_elements[x] <== session_tree_siblings[x];
   }
 

@@ -95,7 +95,7 @@ module.exports = class Identity {
     }
     const recoveryCodes = backupCodes.map((v, i) => {
       const merkleProof = backupTree.createProof(i)
-      return encodeProof(merkleProof)
+      return encodeProof(merkleProof, i)
     })
     // TODO: store the backup tree in DB
     const { publicSignals, proof } = await this.prover.genProofAndPublicSignals(
@@ -137,7 +137,8 @@ module.exports = class Identity {
     const newToken = safemod(newTokenX * a + secret)
     const sessionTree = await this.sync.buildSessionTree()
     sessionTree.insert(0n)
-    const merkleProof = sessionTree.createProof(sessionTree.leaves.length - 1)
+    const sessionLeafIndex = sessionTree.leaves.length - 1
+    const merkleProof = sessionTree.createProof(sessionLeafIndex)
     const { publicSignals, proof } = await this.prover.genProofAndPublicSignals(
       'addToken',
       {
@@ -145,7 +146,7 @@ module.exports = class Identity {
         session_token: newToken,
         session_token_x: newTokenX,
         pubkey: this.pubkey,
-        session_tree_indices: merkleProof.pathIndices,
+        session_tree_leaf_index: sessionLeafIndex,
         session_tree_siblings: merkleProof.siblings,
         old_session_tree_root: sessionTree.root,
       }
@@ -192,10 +193,10 @@ module.exports = class Identity {
         session_token: this.token.y,
         session_token_x: this.token.x,
         pubkey: this.pubkey,
-        session_tree_indices: authMerkleProof.pathIndices,
+        session_tree_leaf_index: leafIndex,
         session_tree_siblings: authMerkleProof.siblings,
         old_session_tree_root: sessionTree.root,
-        session_tree_change_indices: removeMerkleProof.pathIndices,
+        session_tree_change_leaf_index: removeLeafIndex,
         session_tree_change_siblings: removeMerkleProof.siblings,
         session_leaf: tokenHash,
       }
@@ -225,7 +226,7 @@ module.exports = class Identity {
         new_s0: s0,
         new_session_token: token.y,
         new_session_token_x: token.x,
-        backup_tree_indices: parsedProof.pathIndices,
+        backup_tree_leaf_index: parsedProof.leafIndex,
         backup_tree_siblings: parsedProof.siblings,
         backup_code: parsedProof.leaf,
         pubkey: this.pubkey,

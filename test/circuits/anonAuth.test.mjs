@@ -51,11 +51,9 @@ test('should generate an anonymous proof', async (t) => {
       session_token: token,
       session_token_x: tokenX,
       pubkey,
-      session_tree_indices: merkleProof.pathIndices,
+      session_tree_leaf_index: index,
       session_tree_siblings: merkleProof.siblings,
-      identity_tree_indices: Array(IDENTITY_TREE_DEPTH)
-        .fill()
-        .map((_, i) => identityTreeProof.pathIndices[i] ?? 0),
+      identity_tree_leaf_index: identityTreeIndex,
       identity_tree_siblings: Array(IDENTITY_TREE_DEPTH)
         .fill()
         .map((_, i) => identityTreeProof.siblings[i] ?? 0),

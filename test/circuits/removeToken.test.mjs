@@ -46,10 +46,10 @@ test('should generate a remove token proof', async (t) => {
       session_token: tokens[authLeafIndex].token,
       session_token_x: tokens[authLeafIndex].tokenX,
       pubkey,
-      session_tree_indices: authMerkleProof.pathIndices,
+      session_tree_leaf_index: authLeafIndex,
       session_tree_siblings: authMerkleProof.siblings,
       old_session_tree_root: sessionTree.root,
-      session_tree_change_indices: removeMerkleProof.pathIndices,
+      session_tree_change_leaf_index: removeIndex,
       session_tree_change_siblings: removeMerkleProof.siblings,
       session_leaf: poseidon1([tokens[removeIndex].token]),
     }

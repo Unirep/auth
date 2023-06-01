@@ -13,13 +13,13 @@ template RemoveToken(SESSION_TREE_DEPTH) {
   signal input pubkey;
 
   // for proving session_token membership
-  signal input session_tree_indices[SESSION_TREE_DEPTH];
+  signal input session_tree_leaf_index;
   signal input session_tree_siblings[SESSION_TREE_DEPTH];
 
   // the leaf to remove
   signal input session_leaf;
 
-  signal input session_tree_change_indices[SESSION_TREE_DEPTH];
+  signal input session_tree_change_leaf_index;
   signal input session_tree_change_siblings[SESSION_TREE_DEPTH];
   signal input old_session_tree_root;
 
@@ -36,8 +36,8 @@ template RemoveToken(SESSION_TREE_DEPTH) {
   // prove that session_token exists in the tree
   component auth_proof = MerkleTreeInclusionProof(SESSION_TREE_DEPTH);
   auth_proof.leaf <== Poseidon(1)([session_token]);
+  auth_proof.leaf_index <== session_tree_leaf_index;
   for (var x = 0; x < SESSION_TREE_DEPTH; x++) {
-    auth_proof.path_index[x] <== session_tree_indices[x];
     auth_proof.path_elements[x] <== session_tree_siblings[x];
   }
   auth_proof.root === old_session_tree_root;
@@ -45,8 +45,8 @@ template RemoveToken(SESSION_TREE_DEPTH) {
   // prove that session_leaf exists where we expect it to
   component old_tree_proof = MerkleTreeInclusionProof(SESSION_TREE_DEPTH);
   old_tree_proof.leaf <== session_leaf;
+  old_tree_proof.leaf_index <== session_tree_change_leaf_index;
   for (var x = 0; x < SESSION_TREE_DEPTH; x++) {
-    old_tree_proof.path_index[x] <== session_tree_change_indices[x];
     old_tree_proof.path_elements[x] <== session_tree_change_siblings[x];
   }
   old_tree_proof.root === old_session_tree_root;
@@ -62,8 +62,8 @@ template RemoveToken(SESSION_TREE_DEPTH) {
   // put a 0 where session_leaf was
   component new_tree_proof = MerkleTreeInclusionProof(SESSION_TREE_DEPTH);
   new_tree_proof.leaf <== 0;
+  new_tree_proof.leaf_index <== session_tree_change_leaf_index;
   for (var x = 0; x < SESSION_TREE_DEPTH; x++) {
-    new_tree_proof.path_index[x] <== session_tree_change_indices[x];
     new_tree_proof.path_elements[x] <== session_tree_change_siblings[x];
   }
 

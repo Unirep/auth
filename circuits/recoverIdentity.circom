@@ -9,7 +9,7 @@ include "./secret.circom";
 template RecoverIdentity(SESSION_TREE_DEPTH, BACKUP_TREE_DEPTH) {
   signal input backup_code;
 
-  signal input backup_tree_indices[BACKUP_TREE_DEPTH];
+  signal input backup_tree_leaf_index;
   signal input backup_tree_siblings[BACKUP_TREE_DEPTH];
 
   // must be a public signal to verify it isn't changed
@@ -48,8 +48,8 @@ template RecoverIdentity(SESSION_TREE_DEPTH, BACKUP_TREE_DEPTH) {
 
   component backup_tree_proof = MerkleTreeInclusionProof(BACKUP_TREE_DEPTH);
   backup_tree_proof.leaf <== backup_code;
+  backup_tree_proof.leaf_index <== backup_tree_leaf_index;
   for (var x = 0; x < BACKUP_TREE_DEPTH; x++) {
-    backup_tree_proof.path_index[x] <== backup_tree_indices[x];
     backup_tree_proof.path_elements[x] <== backup_tree_siblings[x];
   }
   backup_tree_root <== backup_tree_proof.root;

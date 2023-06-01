@@ -33,7 +33,7 @@ test('should generate a recover identity proof', async (t) => {
       new_s0: s0,
       new_session_token: sessionToken,
       new_session_token_x: sessionTokenX,
-      backup_tree_indices: backupTreeProof.pathIndices,
+      backup_tree_leaf_index: backupCodeIndex,
       backup_tree_siblings: backupTreeProof.siblings,
       backup_code: backupCode,
       pubkey,

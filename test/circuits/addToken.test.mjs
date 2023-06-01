@@ -43,7 +43,7 @@ test('should generate an add token proof', async (t) => {
       session_token: token,
       session_token_x: tokenX,
       pubkey,
-      session_tree_indices: merkleProof.pathIndices,
+      session_tree_leaf_index: index,
       session_tree_siblings: merkleProof.siblings,
       old_session_tree_root: oldSessionTree.root,
     }
